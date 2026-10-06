@@ -161,6 +161,8 @@
   .footer-signature{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;}
   .footer-signature img{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px var(--hairline);}
 
+  .demo{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:18px;padding:22px;}
+  .demo iframe{width:100%;height:min(86vh,860px);border:1px solid var(--hairline);border-radius:12px;background:#fff;margin-top:14px;}
   /* Formulaire de demande */
   .ac{position:relative;}
   .sug{position:absolute;left:0;right:0;top:100%;margin:4px 0 0;padding:4px;list-style:none;z-index:20;background:var(--bg-card);border:1px solid var(--amber);border-radius:10px;max-height:260px;overflow:auto;box-shadow:0 12px 30px rgba(0,0,0,.5);}
@@ -281,6 +283,20 @@
         <span>Elle est livrée sous 5 jours ouvrés en PDF, avec une retouche incluse. La formule web ajoute une page en ligne.</span></div>
       <div class="step"><b>Vous la diffusez</b>
         <span>Vous imprimez, publiez le PDF ou mettez le lien sur le site de la commune. La fiche est à vous.</span></div>
+    </div>
+  </section>
+
+  <section id="exemple" hidden>
+    <h2>Exemple</h2>
+    <p class="h2big">Voyez une vraie fiche, tout de suite</p>
+    <p class="sec-lead">Voici une fiche complète, générée avec les vraies données climatiques. La vôtre sera identique, avec votre commune, votre logo et votre pied de page.</p>
+    <div class="demo">
+      <div class="cta-row">
+        <a class="cta" href="exemple-fiche-climat.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a>
+        <a class="cta cta-2" href="exemple-fiche-climat.pdf" download>Télécharger</a>
+        <a class="cta cta-2" href="#demande">Commander la mienne</a>
+      </div>
+      <iframe src="exemple-fiche-climat.pdf#view=FitH" title="Exemple de fiche climat communale"></iframe>
     </div>
   </section>
 
@@ -515,6 +531,13 @@
   });
   inp.addEventListener('blur',function(){setTimeout(close,150);});
 })();
+</script>
+
+<script>
+// Affiche la section « Exemple » seulement si le PDF est présent sur le site.
+fetch('exemple-fiche-climat.pdf',{method:'HEAD'}).then(function(r){
+  if(r.ok)document.getElementById('exemple').hidden=false;
+}).catch(function(){});
 </script>
 </body>
 </html>

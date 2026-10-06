@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiche climat de la commune</title>
+<meta name="theme-color" content="#0b1622">
+<link rel="icon" href="https://comparateur-meteo.fr/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,600&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style id="page-size">@page { size: A4 portrait; margin: 0; }</style>
+<style>
+  :root{ --bg:#0b1622; --bg-panel:#101f30; --bg-card:#132539; --hairline:#22384f; --text-hi:#f3f6f9; --text-lo:#8fa4b8; --live:#7ee4b8; --coral:#e76f51; }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text-hi);font-family:'Space Grotesk',sans-serif;padding:20px 16px 40px;}
+  .app{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start;}
+  @media (max-width:860px){.app{grid-template-columns:1fr;}}
+  h1{font-family:'Fraunces',serif;font-style:italic;font-weight:600;font-size:24px;margin:0 0 4px;}
+  .sub{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-lo);margin:0 0 18px;}
+  .panel{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:16px;padding:18px;position:sticky;top:16px;}
+  .field{margin-bottom:12px;position:relative;}
+  .field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-lo);margin-bottom:5px;}
+  .field input,.field select,.field textarea{width:100%;background:var(--bg-card);color:var(--text-hi);border:1px solid var(--hairline);border-radius:8px;padding:9px 10px;font:14px 'Space Grotesk',sans-serif;color-scheme:dark;}
+  .field input[type=file]{padding:7px;font-size:12px;}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--live);}
+  .field input[type=checkbox]{width:auto;margin:0;padding:0;flex:none;accent-color:var(--live);}
+  .field label.check{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:12px;margin:6px 0 0;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .hint{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-lo);margin:4px 0 0;line-height:1.4;}
+  .suggest{position:absolute;left:0;right:0;top:100%;z-index:20;background:var(--bg-card);border:1px solid var(--hairline);border-radius:8px;margin-top:4px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+  .suggest button{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--hairline);color:var(--text-hi);padding:9px 12px;cursor:pointer;font:13px 'Space Grotesk',sans-serif;}
+  .suggest button:last-child{border-bottom:none;} .suggest button:hover{background:#1a3350;}
+  .suggest small{color:var(--text-lo);font-size:11px;margin-left:4px;}
+  .hidden{display:none !important;}
+  .btns{display:flex;gap:10px;margin-top:6px;}
+  .btn{flex:1;border:none;border-radius:10px;padding:11px 12px;font:600 14px 'Space Grotesk',sans-serif;cursor:pointer;background:var(--live);color:#06231a;}
+  .btn.alt{background:var(--bg-card);color:var(--text-hi);border:1px solid var(--hairline);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .msg{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--live);margin-top:10px;min-height:16px;}
+  .msg.err{color:var(--coral);}
+  .preview{min-width:0;}
+  .sheet-wrap{width:100%;max-width:794px;margin:0 auto;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.5);overflow:hidden;position:relative;}
+  .empty{font-family:'IBM Plex Mono',monospace;color:var(--text-lo);font-size:13px;text-align:center;padding:80px 20px;}
+
+  /* ===== La fiche A4 (794 x 1122 px) ===== */
+  .sheet{--ac:#1d4e7a;--ac-soft:#e8eff6;--ink:#1c2733;--mute:#5d6b79;--line:#d9e0e7;
+    width:794px;height:1122px;background:#fff;color:var(--ink);font-family:'Space Grotesk',sans-serif;padding:34px 40px 26px;
+    transform-origin:top left;position:relative;overflow:hidden;}
+  .sh-in{display:flex;flex-direction:column;gap:13px;transform-origin:top left;}
+  .sh-in svg{display:block;width:100%;height:auto;}
+  .sheet *{box-sizing:border-box;}
+  .sh-head{display:flex;align-items:center;gap:18px;border-bottom:3px solid var(--ac);padding-bottom:12px;}
+  .sh-head .logo{height:74px;max-width:130px;object-fit:contain;flex:none;}
+  .sh-head .tt{flex:1;min-width:0;}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ac);font-weight:500;}
+  .sh-head h2{font-family:'Fraunces',serif;font-size:38px;line-height:1.05;margin:3px 0 5px;font-weight:600;color:var(--ink);}
+  .meta{font-size:12.5px;color:var(--mute);}
+  .sh-sec h3{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ac);margin:0 0 6px;font-weight:500;display:flex;gap:8px;align-items:center;}
+  .sh-sec h3{white-space:nowrap;}
+  .sh-sec h3::after{content:"";flex:1;height:1px;background:var(--line);}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;}
+  .kpi{background:var(--ac-soft);border-radius:8px;padding:7px 10px;}
+  .kpi b{display:block;font-family:'Fraunces',serif;font-size:21px;font-weight:600;color:var(--ac);line-height:1.15;}
+  .kpi span{font-size:10.5px;color:var(--mute);}
+  .ytd{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:8px;align-items:stretch;}
+  .ytd .big{border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;}
+  .ytd .big b{display:block;font-family:'Fraunces',serif;font-size:28px;font-weight:600;line-height:1.1;}
+  .ytd .big span{font-size:10.5px;color:var(--mute);}
+  .ytd .txt{font-size:12px;line-height:1.45;color:var(--ink);align-self:center;}
+  .warm{color:#b2182b;} .cold{color:#2166ac;}
+  table.ind{width:100%;border-collapse:collapse;font-size:12px;margin-top:7px;}
+  table.ind th{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:500;text-align:right;padding:3px 6px;border-bottom:1.5px solid var(--ac);}
+  table.ind th:first-child,table.ind td:first-child{text-align:left;}
+  table.ind td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;}
+  table.ind td:last-child{font-weight:700;color:var(--ac);}
+  .stripes-cap{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--mute);margin-top:2px;}
+  .ext{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .ext div{border-left:3px solid var(--ac);padding:2px 0 2px 9px;}
+  .ext b{display:block;font-family:'Fraunces',serif;font-size:20px;font-weight:600;line-height:1.15;}
+  .ext span{display:block;font-size:10.5px;color:var(--mute);}
+  .ext small{display:block;font-size:10.5px;color:var(--ink);}
+  .ski-cap{font-size:11px;color:var(--mute);margin-top:3px;line-height:1.4;}
+  .air-leg{display:inline-flex;align-items:center;gap:3px;margin-right:8px;white-space:nowrap;}
+  .air-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;}
+  .ski-cap b{color:var(--ink);font-weight:600;}
+  .local{background:var(--ac-soft);border-radius:10px;padding:10px 14px;}
+  .local ul{margin:0;padding-left:16px;font-size:12px;line-height:1.5;}
+  .local li::marker{color:var(--ac);}
+  .sh-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:7px;font-size:9.5px;line-height:1.45;color:var(--mute);display:grid;grid-template-columns:1.5fr 1fr;gap:16px;}
+  .sh-foot .r{text-align:right;}
+  .sh-foot .mention{color:var(--ink);font-weight:500;font-size:10.5px;}
+
+  @media print{
+    html,body{background:none;padding:0;margin:0;width:210mm;}
+    .app > div:first-child{display:none !important;}
+    .app{display:block;max-width:none;margin:0;}
+    .sheet-wrap{max-width:none;box-shadow:none;width:210mm !important;height:297mm !important;overflow:hidden;break-inside:avoid;}
+    .sheet{transform:none !important;}
+  }
+  .page-foot{max-width:1200px;margin:28px auto 0;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-lo);line-height:1.8;}
+  .page-foot .sig{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;}
+  .page-foot .sig img{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px var(--hairline);}
+  @media print{.page-foot{display:none;}}
+  .app{display:block;max-width:900px;}
+  .top{max-width:794px;margin:0 auto 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+  .top .nm{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-lo);}
+  .center{max-width:520px;margin:14vh auto 0;background:var(--bg-panel);border:1px solid var(--hairline);border-radius:16px;padding:26px;text-align:center;}
+  .center h1{margin-bottom:10px;} .center p{color:var(--text-lo);line-height:1.5;} .center a{color:var(--live);}
+  @media print{.top{display:none !important;}}
+</style>
+</head>
+<body>
+<div class="app" id="app" hidden>
+  <div class="top"><span class="nm" id="nm"></span><button class="btn" id="print" type="button" style="flex:none">Enregistrer en PDF / Imprimer</button></div>
+  <div class="preview">
+    <div class="sheet-wrap" id="wrap"><div class="empty" id="empty">Chargement de la fiche…<div id="msg" class="msg" style="margin-top:12px"></div></div></div>
+  </div>
+</div>
+<div class="center" id="state" hidden></div>
+<div class="page-foot">
+  <div class="sig"><img src="logo-fef73.jpg" alt="fef73" width="26" height="26"><span>Créé par fef73 avec claude.ai</span></div>
+  <div style="opacity:.6;">© 2026 Fernand (fef73) — Tous droits réservés</div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const fr = (v, d = 1) => (Math.abs(v) < Math.pow(10, -d) / 2 ? 0 : v).toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const sgn = (v, d = 1) => (v > 0 ? '+' : v < 0 ? '−' : '') + fr(Math.abs(v), d);
+const dateFr = iso => new Date(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+const msg = (t, err) => { $('msg').textContent = t; $('msg').className = 'msg' + (err ? ' err' : ''); };
+
+async function getJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
+
+// ---------- Données : 1950 → il y a 6 jours, en 3 morceaux ----------
+async function fetchAll(p, elev) {
+  const endD = new Date(Date.now() - 6 * 86400000), end = endD.toISOString().slice(0, 10);
+  const ranges = [['1950-01-01', '1974-12-31'], ['1975-01-01', '1999-12-31'], ['2000-01-01', end]];
+  const vars = 'temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,sunshine_duration,wind_gusts_10m_max';
+  const parts = await Promise.all(ranges.map(([a, b]) =>
+    getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${p.lat}&longitude=${p.lon}&start_date=${a}&end_date=${b}&daily=${vars}&timezone=auto${elev != null ? '&elevation=' + elev : ''}`)));
+  const out = { time: [], tx: [], tn: [], pr: [], sn: [], su: [], wg: [], elevation: parts[0].elevation };
+  for (const j of parts) {
+    const d = j.daily; if (!d || !d.time) throw new Error('vide');
+    out.time.push(...d.time); out.tx.push(...d.temperature_2m_max); out.tn.push(...d.temperature_2m_min);
+    out.pr.push(...d.precipitation_sum); out.sn.push(...d.snowfall_sum); out.su.push(...d.sunshine_duration); out.wg.push(...(d.wind_gusts_10m_max || []));
+  }
+  return out;
+}
+
+// ---------- Qualité de l'air (CAMS via Open-Meteo, horaire, depuis août 2022) ----------
+const AQ = { lab: ['Bon', 'Moyen', 'Dégradé', 'Mauvais', 'Très mauvais', 'Extrêmement mauvais'], col: ['#50f0e6', '#50ccaa', '#f0e641', '#ff5050', '#960032', '#7d2181'] };
+const AQ_POL = [['european_aqi_pm2_5', 'les particules fines (PM2,5)'], ['european_aqi_pm10', 'les particules (PM10)'], ['european_aqi_nitrogen_dioxide', "le dioxyde d'azote"], ['european_aqi_ozone', "l'ozone"]];
+async function fetchAir(lat, lon) {
+  const end = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const j = await getJSON(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=european_aqi,${AQ_POL.map(x => x[0]).join(',')}&start_date=2022-08-01&end_date=${end}&timezone=auto`);
+  return j.hourly;
+}
+function analyseAir(h) {
+  if (!h || !h.time) return null;
+  const days = {};
+  h.time.forEach((t, i) => {
+    const v = h.european_aqi[i]; if (!ok(v)) return;
+    const d = t.slice(0, 10), o = days[d] = days[d] || { n: 0, v: -1, dom: null }; o.n++;
+    if (v > o.v) { o.v = v; let bv = -1; AQ_POL.forEach(([k]) => { const x = h[k] && h[k][i]; if (ok(x) && x > bv) { bv = x; o.dom = k; } }); }
+  });
+  const list = Object.keys(days).sort().filter(d => days[d].n >= 18).map(d => ({ d, ...days[d] }));
+  if (list.length < 60) return null;
+  const cls = v => v < 20 ? 0 : v < 40 ? 1 : v < 60 ? 2 : v < 80 ? 3 : v < 100 ? 4 : 5;
+  const mon = {}; list.forEach(x => { const m = x.d.slice(0, 7); (mon[m] = mon[m] || [0, 0, 0, 0, 0, 0])[cls(x.v)]++; });
+  const months = Object.keys(mon).sort().filter(m => mon[m].reduce((a, b) => a + b, 0) >= 20).map(m => ({ m, c: mon[m] }));
+  const tot = [0, 0, 0, 0, 0, 0]; list.forEach(x => tot[cls(x.v)]++);
+  const worst = list.reduce((b, x) => x.v > b.v ? x : b);
+  const bad = list.filter(x => x.v >= 40), cnt = {}; bad.forEach(x => { if (x.dom) cnt[x.dom] = (cnt[x.dom] || 0) + 1; });
+  const dom = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+  return { n: list.length, months, tot, worst, nBad: bad.length, dom: dom ? AQ_POL.find(p => p[0] === dom)[1] : null, domW: worst.dom ? AQ_POL.find(p => p[0] === worst.dom)[1] : null };
+}
+
+// ---------- Calculs ----------
+const ok = v => v != null && !isNaN(v);
+const mean = a => { const b = a.filter(ok); return b.length ? b.reduce((s, x) => s + x, 0) / b.length : null; };
+const sum = a => a.filter(ok).reduce((s, x) => s + x, 0);
+
+function analyse(D) {
+  const n = D.time.length, Y = new Int16Array(n), M = new Int8Array(n), MD = new Array(n);
+  for (let i = 0; i < n; i++) { const t = D.time[i]; Y[i] = +t.slice(0, 4); M[i] = +t.slice(5, 7) - 1; MD[i] = t.slice(5); }
+  const lastISO = D.time[n - 1], lastY = Y[n - 1];
+  const tm = i => (ok(D.tx[i]) && ok(D.tn[i])) ? (D.tx[i] + D.tn[i]) / 2 : null;
+  const R = { lastISO };
+
+  // Normales 1991-2020 par mois
+  const NY = 30, mon = Array.from({ length: 12 }, () => ({ tx: [], tn: [], pr: 0, sn: 0, su: 0, suN: 0 }));
+  for (let i = 0; i < n; i++) if (Y[i] >= 1991 && Y[i] <= 2020) {
+    const m = mon[M[i]]; if (ok(D.tx[i])) m.tx.push(D.tx[i]); if (ok(D.tn[i])) m.tn.push(D.tn[i]);
+    if (ok(D.pr[i])) m.pr += D.pr[i]; if (ok(D.sn[i])) m.sn += D.sn[i]; if (ok(D.su[i])) { m.su += D.su[i]; m.suN++; }
+  }
+  R.mon = mon.map(m => ({ tx: mean(m.tx), tn: mean(m.tn), pr: m.pr / NY, sn: m.sn / NY, su: m.suN ? m.su / 3600 / NY : null }));
+  R.hasSun = R.mon.every(m => m.su != null && m.su > 0);
+  R.annT = mean(R.mon.map(m => (m.tx + m.tn) / 2));
+  R.annPr = sum(R.mon.map(m => m.pr)); R.annSn = sum(R.mon.map(m => m.sn)); R.annSu = R.hasSun ? sum(R.mon.map(m => m.su)) : null;
+
+  // Moyennes annuelles (années complètes)
+  const byY = {};
+  for (let i = 0; i < n; i++) { const v = tm(i); if (v != null) (byY[Y[i]] = byY[Y[i]] || []).push(v); }
+  R.years = Object.keys(byY).map(Number).filter(y => byY[y].length >= 360 && y < lastY).sort((a, b) => a - b);
+  R.annual = R.years.map(y => mean(byY[y]));
+  const avgY = (a, b) => mean(R.years.map((y, k) => (y >= a && y <= b) ? R.annual[k] : null));
+  R.t5180 = avgY(1951, 1980); R.t9120 = avgY(1991, 2020);
+  R.lastFull = R.years[R.years.length - 1];
+
+  // Année en cours vs normale (sur la même fenêtre calendaire)
+  let yy = lastY, endMD = lastISO.slice(5);
+  if (endMD < '01-31') { yy = lastY - 1; endMD = '12-31'; }
+  R.ytd = { year: yy, endMD, partial: endMD !== '12-31' };
+  const cur = [], curP = [], ref = [], refP = []; let refYears = 0;
+  for (let i = 0; i < n; i++) {
+    if (MD[i] > endMD) continue;
+    if (Y[i] === yy) { const v = tm(i); if (v != null) cur.push(v); if (ok(D.pr[i])) curP.push(D.pr[i]); }
+    if (Y[i] >= 1991 && Y[i] <= 2020) { const v = tm(i); if (v != null) ref.push(v); if (ok(D.pr[i])) refP.push(D.pr[i]); }
+  }
+  R.ytd.dT = cur.length && ref.length ? mean(cur) - mean(ref) : null;
+  const refPr = sum(refP) / NY; R.ytd.prSum = sum(curP); R.ytd.prPct = refPr > 0 ? (R.ytd.prSum / refPr - 1) * 100 : null; R.ytd.refPr = refPr;
+
+  // Extrêmes depuis 1950
+  const ext = (arr, cmp) => { let b = -1; for (let i = 0; i < n; i++) if (ok(arr[i]) && (b < 0 || cmp(arr[i], arr[b]))) b = i; return b < 0 ? null : { v: arr[b], d: D.time[b] }; };
+  R.hot = ext(D.tx, (a, b) => a > b); R.cold = ext(D.tn, (a, b) => a < b);
+  R.rain = ext(D.pr, (a, b) => a > b); R.snow = ext(D.sn, (a, b) => a > b);
+
+  // Indicateurs (jours par an)
+  const periods = [[1951, 1980], ['1991', 2020], [R.lastFull - 9, R.lastFull]].map(p => [+p[0], p[1]]);
+  const defs = [
+    ['Jours chauds (max ≥ 30 °C)', i => ok(D.tx[i]) && D.tx[i] >= 30],
+    ['Jours de gel (min < 0 °C)', i => ok(D.tn[i]) && D.tn[i] < 0],
+    ['Forte pluie (≥ 20 mm en 24 h)', i => ok(D.pr[i]) && D.pr[i] >= 20],
+    ['Jours de neige (≥ 1 cm)', i => ok(D.sn[i]) && D.sn[i] >= 1],
+    ['Vent fort (rafales ≥ 58 km/h)', i => ok(D.wg[i]) && D.wg[i] >= 57.6]
+  ];
+  R.periods = periods;
+
+  // Cumul de neige par saison (1er août → 31 juillet), saisons complètes
+  const sea = {};
+  for (let i = 0; i < n; i++) { const s = M[i] >= 7 ? Y[i] : Y[i] - 1; const o = sea[s] = sea[s] || { v: 0, n: 0 }; o.n++; if (ok(D.sn[i])) o.v += D.sn[i]; }
+  R.seas = Object.keys(sea).map(Number).filter(s => sea[s].n >= 360).sort((a, b) => a - b).map(s => ({ s, v: sea[s].v }));
+  R.ind = defs.map(([label, f]) => ({ label, vals: periods.map(([a, b]) => { let c = 0; for (let i = 0; i < n; i++) if (Y[i] >= a && Y[i] <= b && f(i)) c++; return c / (b - a + 1); }) }));
+  return R;
+}
+
+// ---------- Graphiques SVG ----------
+let CW = 714;
+function climogram(R, ac, compact) {
+  const W = CW, H = compact ? 160 : 196, L = 28, Rr = 30, T = 16, B = 22, pw = W - L - Rr, ph = H - T - B, bw = pw / 12;
+  const tmax = Math.max(...R.mon.map(m => m.tx)), tmin = Math.min(...R.mon.map(m => m.tn));
+  const t0 = Math.floor((tmin - 3) / 5) * 5, t1 = Math.ceil((tmax + 3) / 5) * 5;
+  const pmax = Math.max(60, Math.ceil(Math.max(...R.mon.map(m => m.pr)) / 20) * 20);
+  const yT = v => T + ph - (v - t0) / (t1 - t0) * ph, yP = v => T + ph - v / pmax * ph;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="IBM Plex Mono,monospace" font-size="9">`;
+  for (let t = t0; t <= t1; t += 5) s += `<line x1="${L}" x2="${W - Rr}" y1="${yT(t)}" y2="${yT(t)}" stroke="${t === 0 ? '#9fb0c0' : '#e6ebf0'}" stroke-width="${t === 0 ? 1.2 : 1}"/><text x="${L - 5}" y="${yT(t) + 3}" text-anchor="end" fill="#e76f51">${t}°</text>`;
+  for (let p = 0; p <= pmax; p += pmax / 4) s += `<text x="${W - Rr + 5}" y="${yP(p) + 3}" fill="#4a7fb0">${Math.round(p)}</text>`;
+  s += `<text x="${W - Rr + 5}" y="${T - 5}" fill="#4a7fb0">mm</text>`;
+  R.mon.forEach((m, i) => {
+    const x = L + i * bw;
+    s += `<rect x="${x + bw * .18}" y="${yP(m.pr)}" width="${bw * .64}" height="${T + ph - yP(m.pr)}" fill="#9ec3e6" rx="2"/>`;
+    s += `<text x="${x + bw / 2}" y="${H - 7}" text-anchor="middle" fill="#5d6b79">${'JFMAMJJASOND'[i]}</text>`;
+  });
+  const line = (k, c) => { const pts = R.mon.map((m, i) => `${L + i * bw + bw / 2},${yT(m[k])}`); return `<polyline points="${pts.join(' ')}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linejoin="round"/>` + R.mon.map((m, i) => `<circle cx="${L + i * bw + bw / 2}" cy="${yT(m[k])}" r="2.6" fill="${c}"/><text x="${L + i * bw + bw / 2}" y="${yT(m[k]) + (k === 'tx' ? -6 : 12)}" text-anchor="middle" fill="${c}" font-weight="500">${Math.round(m[k])}</text>`).join(''); };
+  s += line('tx', '#d4452d') + line('tn', '#2b6cb0');
+  return s + '</svg>';
+}
+function stripes(R) {
+  const W = CW, H = 44, n = R.years.length, w = W / n, base = R.t9120;
+  const col = a => { const k = Math.max(-1, Math.min(1, a / 1.6)); const c0 = k < 0 ? [33, 102, 172] : [178, 24, 43], c1 = [247, 247, 247], u = Math.abs(k);
+    return `rgb(${c0.map((c, i) => Math.round(c1[i] + (c - c1[i]) * u)).join(',')})`; };
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="none">`;
+  R.annual.forEach((v, i) => { s += `<rect x="${(i * w).toFixed(2)}" y="0" width="${(w + .6).toFixed(2)}" height="${H}" fill="${col(v - base)}"/>`; });
+  return s + '</svg>';
+}
+
+const seaLbl = s => `${s}-${String(s + 1).slice(2)}`;
+function snowChart(R, ac) {
+  const S = R.seas, W = CW, H = 100, L = 34, Rr = 24, T = 8, B = 15, pw = W - L - Rr, ph = H - T - B, n = S.length, bw = pw / n;
+  const vmax = Math.max(1, ...S.map(x => x.v));
+  const step = [10, 20, 50, 100, 200, 250, 500, 1000, 2000].find(st => vmax / st <= 4) || 2000, top = Math.ceil(vmax / step) * step;
+  const y = v => T + ph - v / top * ph;
+  const ref = mean(S.filter(x => x.s >= 1990 && x.s <= 2019).map(x => x.v));
+  const iMax = S.reduce((b, x, i) => x.v > S[b].v ? i : b, 0);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="IBM Plex Mono,monospace" font-size="9">`;
+  for (let v = 0; v <= top; v += step) s += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="#e6ebf0"/><text x="${L - 5}" y="${y(v) + 3}" text-anchor="end" fill="#5d6b79">${v}</text>`;
+  s += `<text x="${W - Rr + 4}" y="${y(top) + 3}" fill="#5d6b79">cm</text>`;
+  S.forEach((x, i) => {
+    s += `<rect x="${(L + i * bw + bw * .12).toFixed(2)}" y="${y(x.v).toFixed(2)}" width="${(bw * .76).toFixed(2)}" height="${(T + ph - y(x.v)).toFixed(2)}" fill="${i === iMax ? ac : '#9ec3e6'}"/>`;
+    if (x.s % 10 === 0) s += `<text x="${L + i * bw + bw / 2}" y="${H - 3}" text-anchor="middle" fill="#5d6b79">${x.s}</text>`;
+  });
+  if (ref != null) s += `<line x1="${L}" x2="${W - Rr}" y1="${y(ref)}" y2="${y(ref)}" stroke="#5d6b79" stroke-dasharray="4 3"/>`;
+  const pts = S.map((x, i) => i < 9 ? null : `${(L + i * bw + bw / 2).toFixed(1)},${y(mean(S.slice(i - 9, i + 1).map(z => z.v))).toFixed(1)}`).filter(Boolean);
+  if (pts.length > 1) s += `<polyline points="${pts.join(' ')}" fill="none" stroke="#d4452d" stroke-width="2" stroke-linejoin="round"/>`;
+  return s + '</svg>';
+}
+function airChart(A) {
+  const S = A.months, W = CW, H = 96, L = 34, Rr = 24, T = 6, B = 15, pw = W - L - Rr, ph = H - T - B, n = S.length, bw = pw / n;
+  const y = v => T + ph - v / 31 * ph;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="IBM Plex Mono,monospace" font-size="9">`;
+  for (const v of [0, 10, 20, 30]) s += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="#e6ebf0"/><text x="${L - 5}" y="${y(v) + 3}" text-anchor="end" fill="#5d6b79">${v}</text>`;
+  s += `<text x="${W - Rr + 4}" y="${y(30) + 3}" fill="#5d6b79">jours</text>`;
+  S.forEach((x, i) => {
+    let acc = 0; const x0 = L + i * bw + bw * .12, w = bw * .76;
+    x.c.forEach((c, k) => { if (!c) return; s += `<rect x="${x0.toFixed(2)}" y="${y(acc + c).toFixed(2)}" width="${w.toFixed(2)}" height="${(y(acc) - y(acc + c)).toFixed(2)}" fill="${AQ.col[k]}"/>`; acc += c; });
+    const mm = +x.m.slice(5);
+    if (mm === 1) s += `<text x="${L + i * bw + bw / 2}" y="${H - 3}" text-anchor="middle" fill="#5d6b79">${x.m.slice(0, 4)}</text>`;
+  });
+  return s + '</svg>';
+}
+function airBlock(A) {
+  if (!A) return `<div class="sh-sec"><h3>Qualité de l'air</h3><div class="ski-cap">Données de qualité de l'air indisponibles pour ce point.</div></div>`;
+  const pct = k => Math.round(A.tot[k] / A.n * 100), m0 = A.months[0].m;
+  const nPoor = A.tot[3] + A.tot[4] + A.tot[5];
+  return `<div class="sh-sec"><h3>Qualité de l'air · indice européen, depuis ${MOIS[+m0.slice(5) - 1]} ${m0.slice(0, 4)}</h3>
+    ${airChart(A)}
+    <div class="ski-cap">${AQ.lab.map((l, k) => `<span class="air-leg"><i style="background:${AQ.col[k]}"></i>${l}</span>`).join('')}<br>
+    Sur ${fr(A.n, 0)} jours : <b>${pct(0) + pct(1)} %</b> bons ou moyens, <b>${fr(A.tot[2], 0)}</b> dégradés, <b>${fr(nPoor, 0)}</b> mauvais ou pires.
+    ${A.dom ? `Les journées dégradées sont surtout dues à ${A.dom}. ` : ''}Pire journée : <b>${dateFr(A.worst.d)}</b> (indice ${fr(A.worst.v, 0)}${A.domW ? `, ${A.domW}` : ''}). Chaque jour est classé selon son heure la plus polluée.</div></div>`;
+}
+function skiBlock(R, ac) {
+  const S = R.seas; if (!S || S.length < 10) return '';
+  const avg = (a, b) => mean(S.filter(x => x.s >= a && x.s <= b).map(x => x.v));
+  const last10 = S.slice(-10), hi = S.reduce((b, x) => x.v > b.v ? x : b), lo = S.reduce((b, x) => x.v < b.v ? x : b);
+  const m = v => v == null ? '—' : fr(v, 0) + ' cm';
+  return `<div class="sh-sec"><h3>Cumul de neige par saison · ${seaLbl(S[0].s)} → ${seaLbl(S[S.length - 1].s)}</h3>
+    ${snowChart(R, ac)}
+    <div class="ski-cap">Moyenne par saison : <b>${m(avg(1950, 1979))}</b> (1950-51 → 1979-80) · <b>${m(avg(1990, 2019))}</b> (1990-91 → 2019-20, pointillé) · <b>${m(mean(last10.map(x => x.v)))}</b> (10 dernières saisons).
+    Record <b>${m(hi.v)}</b> en ${seaLbl(hi.s)} · plus faible <b>${m(lo.v)}</b> en ${seaLbl(lo.s)}. <span style="color:#d4452d">Courbe rouge</span> : moyenne glissante sur 10 saisons.</div></div>`;
+}
+
+// ---------- Rendu de la fiche ----------
+let logoData = null, current = null;
+function render(p, R, alt, o) {
+  const k = R.ytd, yrs = `${R.years[0]}–${R.lastFull}`;
+  const ytdTitle = k.partial ? `${k.year}, du 1er janvier au ${new Date(k.year, +k.endMD.slice(0, 2) - 1, +k.endMD.slice(3)).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}` : `Année ${k.year} complète`;
+  const dT = k.dT, dP = k.prPct;
+  const warm = R.t9120 - R.t5180, rise = isFinite(warm);
+  const best = (arr, f) => arr.reduce((b, m, i) => (b < 0 || f(m, arr[b])) ? i : b, -1);
+  const iHot = best(R.mon, (a, b) => a.tx > b.tx), iCold = best(R.mon, (a, b) => a.tn < b.tn), iWet = best(R.mon, (a, b) => a.pr > b.pr), iSun = R.hasSun ? best(R.mon, (a, b) => a.su > b.su) : -1, iSnow = best(R.mon, (a, b) => a.sn > b.sn);
+  const L = [];
+  L.push(`<b>Mois le plus chaud</b> : ${MOIS[iHot]} (max moyen ${fr(R.mon[iHot].tx)} °C) ; <b>le plus froid</b> : ${MOIS[iCold]} (min moyen ${sgn(R.mon[iCold].tn)} °C).`);
+  L.push(`<b>Mois le plus arrosé</b> : ${MOIS[iWet]} (${fr(R.mon[iWet].pr, 0)} mm)${iSun >= 0 ? ` ; <b>le plus ensoleillé</b> : ${MOIS[iSun]} (${fr(R.mon[iSun].su, 0)} h)` : ''}.`);
+  if (R.annSn >= 3) { const on = R.mon.map(m => m.sn >= R.mon[iSnow].sn * 0.25); let st = 0, gap = 0;
+    for (let i = 0; i < 12; i++) { let g = 0; while (g < 12 && !on[(i + g) % 12]) g++; if (!on[i] && g > gap) { gap = g; st = (i + g) % 12; } }
+    let a = st, z = st; for (let g = 0; g < 12; g++) if (on[(st + g) % 12]) z = (st + g) % 12;
+    L.push(`<b>Neige</b> : ${fr(R.annSn, 0)} cm par an en moyenne, surtout de ${MOIS[a]} à ${MOIS[z]}.`); }
+  if (rise) L.push(`<b>Évolution</b> : la température moyenne annuelle a gagné ${sgn(warm)} °C entre 1951–1980 et 1991–2020${R.lastFull >= 2015 ? `, et la décennie ${R.lastFull - 9}–${R.lastFull} est ${sgn(R.periods && mean(R.years.map((y, i) => y >= R.lastFull - 9 ? R.annual[i] : null)) - R.t9120)} °C par rapport à 1991–2020` : ''}.`);
+  const tour = R.mon.map((m, i) => ({ i, ok: m.tx >= 17 && m.tx <= 28, pr: m.pr })).filter(x => x.ok).sort((a, b) => a.pr - b.pr).slice(0, 3).map(x => x.i).sort((a, b) => a - b);
+  const tourBlock = o.tour && tour.length ? `<div class="sh-sec"><h3>Quand venir</h3><div class="local"><ul><li>Mois les plus agréables (températures douces, peu de pluie) : <b>${tour.map(i => MOIS[i]).join(', ')}</b>.</li>${R.annSn >= 20 ? `<li>Pour la neige, comptez sur <b>${MOIS[R.mon.map((m, i) => [m.sn, i]).sort((a, b) => b[0] - a[0])[0][1]]}</b> (${fr(R.mon[iSnow].sn, 0)} cm en moyenne ce mois-là).</li>` : ''}</ul></div></div>` : '';
+  const sheet = $('sheet') || document.createElement('div');
+  sheet.id = 'sheet'; sheet.className = 'sheet'; sheet.style.setProperty('--ac', o.color);
+  sheet.style.setProperty('--ac-soft', o.color + '14');
+  const place = [p.admin2 || p.admin1, p.admin2 ? p.admin1 : null].filter(Boolean).join(' · ');
+  const build = () => { sheet.innerHTML = `<div class="sh-in">
+    <div class="sh-head">${logoData ? `<img class="logo" src="${logoData}" alt="">` : ''}
+      <div class="tt"><div class="kicker">Fiche climat</div><h2>${esc(p.name)}</h2>
+      <div class="meta">${esc([place, `altitude ${fr(alt, 0)} m`, p.population ? `${fr(p.population, 0)} habitants` : null].filter(Boolean).join(' · '))}</div></div></div>
+    <div class="sh-sec"><h3>Le climat en un coup d'œil <span style="letter-spacing:0;text-transform:none;color:#5d6b79;font-family:'Space Grotesk',sans-serif;font-size:10.5px;white-space:nowrap">· normales 1991–2020 (c'est la moyenne de chaque mois sur les 30 années de 1991 à 2020)</span></h3>
+      ${climogram(R, o.color, o.ski)}
+      <div class="kpis">
+        <div class="kpi"><b>${fr(R.annT)} °C</b><span>température moyenne</span></div>
+        <div class="kpi"><b>${fr(R.annPr, 0)} mm</b><span>de pluie et neige fondue par an</span></div>
+        <div class="kpi"><b>${R.annSn >= 1 ? fr(R.annSn, 0) + ' cm' : '—'}</b><span>de neige par an</span></div>
+        <div class="kpi"><b>${R.annSu ? fr(R.annSu, 0) + ' h' : '—'}</b><span>d'ensoleillement par an</span></div>
+      </div></div>
+    <div class="sh-sec"><h3>${esc(ytdTitle)} face à la normale</h3>
+      <div class="ytd">
+        <div class="big"><b class="${dT > 0 ? 'warm' : 'cold'}">${dT == null ? '—' : sgn(dT) + ' °C'}</b><span>écart de température à la normale 1991–2020</span></div>
+        <div class="big"><b>${dP == null ? '—' : sgn(dP, 0) + ' %'}</b><span>précipitations (${fr(k.prSum, 0)} mm contre ${fr(k.refPr, 0)} mm en moyenne)</span></div>
+        <div class="txt">${dT == null ? '' : `Période ${dT >= 0.3 ? 'plus chaude' : dT <= -0.3 ? 'plus fraîche' : 'proche de la normale'}${dP != null ? `, ${dP >= 15 ? 'plus arrosée' : dP <= -15 ? 'plus sèche' : 'avec des pluies dans la norme'}` : ''}. Comparaison sur la même fenêtre calendaire.`}</div>
+      </div></div>
+    <div class="sh-sec"><h3>Depuis ${R.years[0]} · un trait par année</h3>
+      ${stripes(R)}
+      <div class="stripes-cap"><span>${R.years[0]}</span><span>bleu : plus frais que 1991–2020 · rouge : plus chaud</span><span>${R.lastFull}</span></div>
+      <table class="ind"><tr><th>Jours par an en moyenne</th>${R.periods.map(([a, b]) => `<th>${a}–${b}</th>`).join('')}</tr>
+        ${R.ind.map(r => `<tr><td>${r.label}</td>${r.vals.map(v => `<td>${fr(v, v < 10 ? 1 : 0)}</td>`).join('')}</tr>`).join('')}</table></div>
+    ${o.ski ? skiBlock(R, o.color) : ''}
+    ${o.air ? airBlock(o.airData) : ''}
+    <div class="sh-sec"><h3>Les extrêmes depuis ${R.years[0]}</h3>
+      <div class="ext">
+        <div><span>Jour le plus chaud</span><b>${fr(R.hot.v)} °C</b><small>${dateFr(R.hot.d)}</small></div>
+        <div><span>Nuit la plus froide</span><b>${sgn(R.cold.v)} °C</b><small>${dateFr(R.cold.d)}</small></div>
+        <div><span>Plus forte pluie en 24 h</span><b>${fr(R.rain.v, 0)} mm</b><small>${dateFr(R.rain.d)}</small></div>
+        <div><span>Plus forte chute de neige</span><b>${R.snow && R.snow.v >= 1 ? fr(R.snow.v, 0) + ' cm' : '—'}</b><small>${R.snow && R.snow.v >= 1 ? dateFr(R.snow.d) : 'peu de neige'}</small></div>
+      </div></div>
+    <div class="sh-sec"><h3>Repères locaux</h3><div class="local"><ul>${L.map(x => `<li>${x}</li>`).join('')}</ul></div></div>
+    ${tourBlock}
+    <div class="sh-foot"><div>Sources : réanalyse ERA5 (Copernicus / ECMWF) via Open-Meteo, ${yrs} ; normales 1991–2020${o.air ? ' ; qualité de l\'air : CAMS (Copernicus) via Open-Meteo' : ''}. Valeurs modélisées au point ${fr(p.lat, 3)}° N, ${fr(p.lon, 3)}° E à ${fr(alt, 0)} m : elles peuvent différer des mesures d'une station. Mise à jour du ${new Date().toLocaleDateString('fr-FR')}.</div>
+      <div class="r">${o.mention ? `<div class="mention">${esc(o.mention)}</div>` : ''}Document informatif : ne remplace pas la vigilance Météo-France.<br>© ${new Date().getFullYear()} fef73</div></div></div>`; };
+  const wrap = $('wrap'); $('empty') && $('empty').remove(); if (!sheet.parentNode) wrap.appendChild(sheet);
+  // mise en page : si la fiche doit être réduite, on redessine les graphiques à la largeur voulue
+  const layout = () => {
+    CW = 714; build(); const k = squeeze();
+    if (k < 1) { CW = Math.round(714 / k); build(); squeeze(); }
+    CW = 714; fit();
+  };
+  layout();
+  document.fonts && document.fonts.ready.then(layout);
+}
+function fit() {
+  const wrap = $('wrap'), s = $('sheet'); if (!s) return;
+  const k = Math.min(1, wrap.clientWidth / 794);
+  s.style.transform = `scale(${k})`; wrap.style.height = Math.round(1122 * k) + 'px';
+}
+// fait tenir le contenu sur la page : on resserre, puis on réduit l'ensemble si besoin
+function squeeze() {
+  const s = $('sheet'), inn = s && s.querySelector('.sh-in'); if (!inn) return;
+  inn.style.transform = ''; inn.style.width = '';
+  let need = 0, avail = 0;
+  for (const [g, pt, pb] of [[13, 34, 26], [11, 32, 24], [9, 28, 20]]) {
+    inn.style.gap = g + 'px'; s.style.paddingTop = pt + 'px'; s.style.paddingBottom = pb + 'px';
+    inn.style.minHeight = '0'; need = inn.scrollHeight; avail = 1122 - pt - pb;
+    if (need <= avail) break;
+  }
+  if (need > avail) {
+    // recherche du facteur d'échelle, graphiques à hauteur fixe
+    const svgs = [...inn.querySelectorAll('svg')]; svgs.forEach(g => g.style.height = g.getAttribute('height') + 'px');
+    const fits = k => { inn.style.width = (100 / k) + '%'; return inn.scrollHeight * k <= avail; };
+    let lo = 0.5, hi = 1;
+    for (let it = 0; it < 10; it++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; }
+    svgs.forEach(g => g.style.height = '');
+    const k = lo; inn.style.width = (100 / k) + '%';
+    inn.style.transform = `scale(${k})`; inn.style.minHeight = (avail / k) + 'px';
+    return k;
+  }
+  inn.style.minHeight = avail + 'px';
+  return 1;
+}
+window.addEventListener('resize', fit);
+window.addEventListener('beforeprint', () => { const s = $('sheet'); if (s) s.style.transform = 'none'; });
+window.addEventListener('afterprint', fit);
+
+// ---------- Page commune : accès par code INSEE, liste des communes abonnées ----------
+const OFFRES = 'https://fef73.github.io/mairies-offres/';
+function etat(titre, html) { $('app').hidden = true; const s = $('state'); s.hidden = false; s.innerHTML = '<h1>' + esc(titre) + '</h1>' + html; }
+(async function main() {
+  const insee = (new URLSearchParams(location.search).get('insee') || '').trim().toUpperCase();
+  if (!/^(\d{5}|2[AB]\d{3})$/.test(insee))
+    return etat('Fiche climat communale', '<p>Ajoutez le code INSEE de la commune à l\'adresse, par exemple <b>?insee=73116</b>.</p><p><a href="' + OFFRES + '">Découvrir l\'offre pour les communes</a></p>');
+  let conf;
+  try { const all = await getJSON('communes.json?v=' + Date.now()); conf = all[insee]; } catch (e) { return etat('Service momentanément indisponible', '<p>Merci de réessayer dans un instant.</p>'); }
+  if (!conf || conf.actif === false)
+    return etat('Page non activée', '<p>La fiche climat de la commune <b>' + esc(insee) + '</b> n\'est pas activée.</p><p><a href="' + OFFRES + '#exemple">Voir un exemple</a> · <a href="' + OFFRES + '#demande">Demander l\'activation</a></p>');
+  $('app').hidden = false;
+  try {
+    msg('Identification de la commune…');
+    const g = await getJSON('https://geo.api.gouv.fr/communes/' + encodeURIComponent(insee) + '?fields=nom,code,population,departement,region,centre&format=json&geometry=centre');
+    const lon = g.centre.coordinates[0], lat = g.centre.coordinates[1];
+    const elev = conf.altitude != null ? +conf.altitude : null;
+    $('nm').textContent = g.nom + ' · INSEE ' + g.code;
+    document.title = 'Fiche climat — ' + g.nom;
+    msg('Récupération de 75 ans de données…');
+    const D = await fetchAll({ lat, lon }, elev);
+    msg('Calcul…');
+    const R = analyse(D);
+    let airData = null;
+    if (conf.air) { try { airData = analyseAir(await fetchAir(lat, lon)); } catch (e) { airData = null; } }
+    const alt = elev != null ? elev : (D.elevation != null ? D.elevation : 0);
+    if (conf.logo) logoData = conf.logo;
+    if (conf.format === 'A3') $('page-size').textContent = '@page { size: A3 portrait; margin: 0; }';
+    render({ name: conf.nom || g.nom, admin1: g.region && g.region.nom, admin2: g.departement && g.departement.nom, population: g.population, lat, lon }, R, alt,
+      { color: conf.couleur || '#1d4e7a', mention: conf.mention || '', tour: !!conf.tour, ski: !!conf.ski, air: !!conf.air, airData });
+  } catch (e) { etat('Données momentanément indisponibles', '<p>Impossible de charger la fiche. Merci de réessayer dans un instant.</p>'); }
+})();
+$('print').addEventListener('click', () => { const s = $('sheet'); if (s) s.style.transform = 'none'; window.print(); });
+</script>
+</body>
+</html>

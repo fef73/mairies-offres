@@ -160,6 +160,24 @@
   .sheetmock svg{display:block;width:100%;height:auto;}
   .footer-signature{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;}
   .footer-signature img{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px var(--hairline);}
+
+  /* Formulaire de demande */
+  .req{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:18px;padding:24px;}
+  .req fieldset{border:0;padding:0;margin:0 0 18px;min-width:0;}
+  .req legend,.req label.t{display:block;font:600 13px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--live);margin-bottom:8px;padding:0;}
+  .req .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;}
+  .req .opt{display:flex;gap:9px;align-items:flex-start;background:var(--bg-card);border:1px solid var(--hairline);border-radius:10px;padding:10px 12px;font-size:14.5px;cursor:pointer;}
+  .req .opt:has(input:checked){border-color:var(--amber);}
+  .req input[type=text],.req input[type=email],.req input[type=tel],.req textarea{width:100%;background:var(--bg-card);color:var(--text-hi);border:1px solid var(--hairline);border-radius:10px;padding:11px 12px;font:15px 'Space Grotesk',sans-serif;}
+  .req input:focus,.req textarea:focus{outline:2px solid var(--amber);outline-offset:1px;}
+  .req .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:640px){.req .g2{grid-template-columns:1fr;}}
+  .req .hint{font-size:12.5px;color:var(--text-lo);margin:4px 0 0;}
+  .req .hp{position:absolute;left:-9999px;height:0;overflow:hidden;}
+  .req button.cta{border:0;}
+  .req button[disabled]{opacity:.6;cursor:wait;}
+  .req .msg{margin-top:14px;font-size:15px;}
+  .req .msg.ok{color:var(--live);} .req .msg.ko{color:var(--coral);}
 </style>
 </head>
 <body>
@@ -176,7 +194,7 @@
       <p class="lead">Une fiche claire, <b>à l'altitude exacte de votre commune</b> : normales, écart de l'année, extrêmes et évolution depuis 1950. Prête pour le bulletin municipal, le site de la mairie et l'accueil touristique.</p>
       <div class="cta-row">
         <a class="cta" href="#formules">Voir les formules</a>
-        <a class="cta cta-2" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Demander une fiche d'essai</a>
+        <a class="cta cta-2" href="#demande" data-offre="Fiche d'essai gratuite">Demander une fiche d'essai</a>
       </div>
       <div class="price-hint">À partir de <b>150 €</b> par commune</div>
     </div>
@@ -274,7 +292,7 @@
           <li>Une retouche incluse</li>
           <li>Droit de la reproduire et de la diffuser</li>
         </ul>
-        <a class="cta cta-2" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Je commande</a>
+        <a class="cta cta-2" href="#demande" data-offre="Fiche PDF">Je commande</a>
       </div>
       <div class="tier main">
         <span class="tag">Le plus choisi</span>
@@ -287,7 +305,7 @@
           <li>Mise à jour des chiffres chaque mois</li>
           <li>Nouvelle version PDF chaque année</li>
         </ul>
-        <a class="cta" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Je commande</a>
+        <a class="cta" href="#demande" data-offre="Fiche + page web">Je commande</a>
       </div>
       <div class="tier">
         <h3>Pack territoire</h3><p class="for">Pour une communauté de communes, un parc, un syndicat.</p>
@@ -299,10 +317,10 @@
           <li>Formule PDF ou PDF + web</li>
           <li>Un seul interlocuteur</li>
         </ul>
-        <a class="cta cta-2" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Demander un devis</a>
+        <a class="cta cta-2" href="#demande" data-offre="Pack territoire">Demander un devis</a>
       </div>
     </div>
-    <p class="note">Une fiche d'essai peut vous être proposée pour juger du rendu avant de commander. Dans le formulaire, choisissez « Fiche d'essai gratuite » : je vous réponds sous 48 h. Devis et facture fournis.</p>
+    <p class="note">Une fiche d'essai peut vous être proposée pour juger du rendu avant de commander. Dans le formulaire ci-dessous, choisissez « Fiche d'essai gratuite » : je vous réponds sous 48 h. Devis et facture fournis.</p>
   </section>
 
   <section>
@@ -338,11 +356,62 @@
       <p>Non. La fiche ne contient que des données météorologiques et publiques (nom de la commune, altitude, population). Je n'utilise aucun cookie ni traceur de mon côté.</p></details>
   </section>
 
+  <section id="demande">
+    <h2>Votre demande</h2>
+    <p class="h2big">Fiche d'essai, commande ou devis</p>
+    <p class="sec-lead">Remplissez ce formulaire : je vous réponds sous 48 h. Devis et facture fournis.</p>
+    <div id="req-fallback" hidden><a class="cta" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Ouvrir le formulaire de demande</a></div>
+    <form class="req" id="req" novalidate>
+      <fieldset><legend>Votre choix *</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="demande" value="Fiche d'essai gratuite" required> Fiche d'essai gratuite</label>
+          <label class="opt"><input type="radio" name="demande" value="Fiche PDF"> Commande « Fiche PDF » (150 € HT)</label>
+          <label class="opt"><input type="radio" name="demande" value="Fiche + page web"> Commande « Fiche + page web » (250 € HT)</label>
+          <label class="opt"><input type="radio" name="demande" value="Pack territoire"> Devis Pack territoire</label>
+          <label class="opt"><input type="radio" name="demande" value="Question"> Simple question</label>
+        </div></fieldset>
+      <fieldset><legend>Type de collectivité *</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="collectivite" value="Mairie" required> Mairie</label>
+          <label class="opt"><input type="radio" name="collectivite" value="Collectivité de communes"> Collectivité de communes</label>
+          <label class="opt"><input type="radio" name="collectivite" value="Office de tourisme"> Office de tourisme</label>
+        </div></fieldset>
+      <div class="g2" style="margin-bottom:18px">
+        <div><label class="t" for="r-communes">Commune(s) concernée(s) *</label>
+          <input type="text" id="r-communes" name="communes" required maxlength="300">
+          <p class="hint">Nom complet de votre commune ou de la communauté de communes.</p></div>
+        <div><label class="t" for="r-alt">Altitude souhaitée</label>
+          <input type="text" id="r-alt" name="altitude" maxlength="200">
+          <p class="hint">Chef-lieu, hameau, station ou automatique.</p></div>
+      </div>
+      <fieldset><legend>Options (plusieurs possibles)</legend>
+        <div class="opts">
+          <label class="opt"><input type="checkbox" name="options" value="Quand venir (tourisme)"> Quand venir (tourisme)</label>
+          <label class="opt"><input type="checkbox" name="options" value="Station de ski : cumul de neige depuis 1950"> Station de ski : cumul de neige depuis 1950</label>
+          <label class="opt"><input type="checkbox" name="options" value="Qualité de l'air"> Qualité de l'air</label>
+          <label class="opt"><input type="checkbox" name="options" value="Format A3"> Format A3</label>
+        </div></fieldset>
+      <div style="margin-bottom:18px"><label class="t" for="r-pied">Mention en pied de page</label>
+        <input type="text" id="r-pied" name="pied" maxlength="200" placeholder="Mairie de … · www.…"></div>
+      <div class="g2" style="margin-bottom:18px">
+        <div><label class="t" for="r-nom">Nom et fonction *</label><input type="text" id="r-nom" name="nom" required maxlength="150" autocomplete="name"></div>
+        <div><label class="t" for="r-mail">E-mail *</label><input type="email" id="r-mail" name="email" required maxlength="150" autocomplete="email"></div>
+        <div><label class="t" for="r-tel">Téléphone</label><input type="tel" id="r-tel" name="tel" maxlength="30" autocomplete="tel"></div>
+      </div>
+      <div style="margin-bottom:18px"><label class="t" for="r-msg">Message</label>
+        <textarea id="r-msg" name="message" rows="4" maxlength="2000"></textarea></div>
+      <div class="hp" aria-hidden="true"><label>Ne pas remplir <input type="text" name="site" tabindex="-1" autocomplete="off"></label></div>
+      <button class="cta" type="submit" id="r-send">Envoyer ma demande</button>
+      <div class="msg" id="r-msg-out" role="status" aria-live="polite"></div>
+      <p class="hint" style="margin-top:12px">Ces informations servent uniquement à vous répondre. Aucun cookie, aucun traceur.</p>
+    </form>
+  </section>
+
   <section class="closing">
     <p class="h2big">Et si les habitants voyaient enfin le climat de leur commune ?</p>
     <p>Une fiche d'essai, un devis ou une question : écrivez-moi, je réponds sous 48 h.</p>
     <div class="cta-row" style="justify-content:center">
-      <a class="cta" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Contacter Fernand</a>
+      <a class="cta" href="#demande" data-offre="Question">Contacter Fernand</a>
       <a class="cta cta-2" href="#formules">Revoir les formules</a>
     </div>
   </section>
@@ -350,10 +419,44 @@
   <footer>
     Données : réanalyse ERA5 (Copernicus / ECMWF) et qualité de l'air CAMS (Copernicus) via Open-Meteo.com (CC BY 4.0) · Population : INSEE<br>
     <a href="https://comparateur-meteo.fr/presentation.html">Découvrir les six sites</a> ·
-    <a href="https://forms.gle/EMZtxMBJCUE6HJXp8" target="_blank" rel="noopener">✉️ Contact</a>
+    <a href="#demande" data-offre="Question">✉️ Contact</a>
     <div class="footer-signature"><img src="logo-fef73.jpg" alt="fef73" width="26" height="26"><span>Créé par fef73 avec claude.ai · 3 octobre 2026</span></div>
     <div style="margin-top:14px;opacity:.6;">© 2026 Fernand (fef73) — Tous droits réservés</div>
   </footer>
 </div>
+
+<script>
+(function(){
+  // URL du script Google Apps Script (voir apps-script-demandes.gs). Vide = repli sur le Google Form.
+  var ENDPOINT='https://script.google.com/macros/s/AKfycbyFJto3k9uV7POiYS3mWwp81LDk-S8cYTqbzVBRtaWoyoEjYEwwVz6Xd8fuhVMXO3sY/exec';
+  var form=document.getElementById('req'), fb=document.getElementById('req-fallback');
+  if(!ENDPOINT){form.hidden=true;fb.hidden=false;}
+  document.querySelectorAll('a[data-offre]').forEach(function(a){
+    a.addEventListener('click',function(){
+      var r=form.querySelector('input[name=demande][value="'+a.dataset.offre.replace(/"/g,'')+'"]');
+      if(r)r.checked=true;
+    });
+  });
+  var t0=Date.now(), out=document.getElementById('r-msg-out'), btn=document.getElementById('r-send');
+  function say(c,m){out.className='msg '+c;out.textContent=m;}
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var f=form.elements;
+    if(f.site.value){return;}
+    if(Date.now()-t0<4000){say('ko','Merci de patienter quelques secondes avant d\'envoyer.');return;}
+    if(!form.querySelector('input[name=demande]:checked')||!form.querySelector('input[name=collectivite]:checked')||!f.communes.value.trim()||!f.nom.value.trim()){say('ko','Merci de remplir les champs marqués *.');return;}
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.value.trim())){say('ko','Adresse e-mail invalide.');return;}
+    var d=new URLSearchParams();
+    d.set('demande',form.querySelector('input[name=demande]:checked').value);
+    d.set('collectivite',form.querySelector('input[name=collectivite]:checked').value);
+    ['communes','altitude','pied','nom','email','tel','message'].forEach(function(k){d.set(k,f[k].value.trim());});
+    d.set('options',Array.prototype.map.call(form.querySelectorAll('input[name=options]:checked'),function(x){return x.value;}).join(' · '));
+    btn.disabled=true;say('','Envoi en cours…');
+    fetch(ENDPOINT,{method:'POST',mode:'no-cors',body:d}).then(function(){
+      form.reset();say('ok','Merci, votre demande est bien envoyée. Je vous réponds sous 48 h.');
+    }).catch(function(){say('ko','Envoi impossible. Merci de réessayer dans un instant.');}).then(function(){btn.disabled=false;});
+  });
+})();
+</script>
 </body>
 </html>

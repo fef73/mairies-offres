@@ -388,7 +388,7 @@ function render(p, R, alt, o) {
       </div></div>
     <div class="sh-sec"><h3>Repères locaux</h3><div class="local"><ul>${L.map(x => `<li>${x}</li>`).join('')}</ul></div></div>
     ${tourBlock}
-    <div class="sh-foot"><div>Sources : réanalyse ERA5 (Copernicus / ECMWF) via Open-Meteo, ${yrs} ; normales 1991–2020${o.air ? ' ; qualité de l\'air : CAMS (Copernicus) via Open-Meteo' : ''}. Valeurs modélisées au point ${fr(p.lat, 3)}° N, ${fr(p.lon, 3)}° E à ${fr(alt, 0)} m : elles peuvent différer des mesures d'une station. Mise à jour du ${new Date().toLocaleDateString('fr-FR')}.</div>
+    <div class="sh-foot"><div>Sources : réanalyse ERA5 (Copernicus / ECMWF) via Open-Meteo, ${yrs} ; normales 1991–2020${o.air ? ' ; qualité de l\'air : CAMS (Copernicus) via Open-Meteo' : ''}. Valeurs modélisées au point ${fr(p.lat, 3)}° N, ${fr(p.lon, 3)}° E à ${fr(alt, 0)} m : elles peuvent différer des mesures d'une station. Fiche établie le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}.</div>
       <div class="r">${o.mention ? `<div class="mention">${esc(o.mention)}</div>` : ''}Document informatif : ne remplace pas la vigilance Météo-France.<br>© ${new Date().getFullYear()} fef73</div></div></div>`; };
   const wrap = $('wrap'); $('empty') && $('empty').remove(); if (!sheet.parentNode) wrap.appendChild(sheet);
   // mise en page : si la fiche doit être réduite, on redessine les graphiques à la largeur voulue

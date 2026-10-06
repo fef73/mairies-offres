@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fiches climat pour les communes — comparateur-meteo.fr</title>
+<meta name="description" content="Une fiche climat claire pour votre commune : normales, écart de l'année, extrêmes, vent fort et évolution depuis 1950, qualité de l'air en option. Pour le bulletin municipal, le site de la mairie et l'office de tourisme.">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Comparateur météo">
+<meta property="og:title" content="Fiches climat pour les communes">
+<meta property="og:description" content="Le climat de votre commune sur une page : normales, extrêmes et évolution depuis 1950.">
+<meta property="og:url" content="https://fef73.github.io/mairies-offres/">
+<meta property="og:image" content="https://comparateur-meteo.fr/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b1622">
+<link rel="icon" href="https://comparateur-meteo.fr/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1622; --bg-panel:#101f30; --bg-card:#132539; --hairline:#22384f;
+    --text-hi:#f3f6f9; --text-lo:#8fa4b8;
+    --amber:#f4a261; --coral:#e76f51; --teal:#2a9d8f; --azure:#457b9d; --live:#7ee4b8; --gold:#ffd166; --violet:#c3a6ff;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(69,123,157,0.18), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 90% 0%, rgba(244,162,97,0.12), transparent 55%),
+      var(--bg);
+    color:var(--text-hi); font-family:'Space Grotesk',sans-serif; line-height:1.55;
+    min-height:100vh; padding:28px 16px 60px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+  a{color:var(--live);}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:26px;}
+  .back{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-lo);text-decoration:none;}
+  .back:hover{color:var(--text-hi);}
+
+  /* Hero */
+  .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;
+    border-bottom:1px solid var(--hairline);padding-bottom:36px;margin-bottom:40px;}
+  @media (max-width:820px){.hero{grid-template-columns:1fr;}}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--amber);display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--amber);}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:clamp(32px,5.2vw,52px);
+    line-height:1.08;margin:0 0 16px;letter-spacing:-.015em;}
+  .lead{font-size:clamp(16px,2.1vw,19px);color:var(--text-lo);margin:0 0 24px;max-width:52ch;}
+  .lead b{color:var(--text-hi);font-weight:500;}
+  .cta-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  .cta{display:inline-flex;align-items:center;gap:8px;font:600 15px 'Space Grotesk',sans-serif;text-decoration:none;cursor:pointer;
+    background:var(--amber);color:#0b1622;border:1px solid var(--amber);border-radius:12px;padding:12px 20px;transition:transform .1s;}
+  .cta:active{transform:scale(.97);}
+  .cta-2{background:var(--bg-card);color:var(--text-hi);border-color:var(--hairline);font-weight:500;}
+  .price-hint{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--text-lo);margin-top:14px;}
+  .price-hint b{color:var(--gold);}
+
+  /* Illustration */
+  .mock{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:18px;padding:16px 16px 12px;}
+  .mock-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .mock-title{font-family:'Fraunces',serif;font-style:italic;font-weight:600;font-size:18px;}
+  .mock-sub{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-lo);}
+  .mock svg{display:block;width:100%;height:auto;}
+  .mock .lbl{font:600 10px 'Space Grotesk',sans-serif;}
+  .mock .ax{font:9px 'IBM Plex Mono',monospace;fill:#8fa4b8;}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-lo);margin-top:6px;}
+  .legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle;}
+
+  section{margin-bottom:46px;}
+  h2{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--live);margin:0 0 6px;font-weight:600;}
+  .h2big{font-family:'Fraunces',serif;font-style:italic;font-weight:600;font-size:clamp(24px,3.6vw,32px);margin:0 0 10px;line-height:1.15;}
+  .sec-lead{font-size:16px;color:var(--text-lo);margin:0 0 20px;max-width:62ch;}
+
+  /* Arguments */
+  .args{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+  .arg{background:var(--bg-card);border:1px solid var(--hairline);border-radius:16px;padding:20px;position:relative;overflow:hidden;}
+  .arg::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);}
+  .arg .ico{font-size:26px;line-height:1;margin-bottom:10px;}
+  .arg b{display:block;font-size:16.5px;margin-bottom:6px;}
+  .arg span{font-size:14px;color:var(--text-lo);}
+
+  /* Pour qui */
+  .who{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+  .who div{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:14px;padding:16px;font-size:14px;color:var(--text-lo);}
+  .who b{display:block;color:var(--text-hi);font-size:15px;margin-bottom:4px;}
+
+  /* Étapes */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;counter-reset:st;}
+  .step{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:16px;padding:20px;position:relative;}
+  .step::before{counter-increment:st;content:counter(st);display:flex;align-items:center;justify-content:center;
+    width:32px;height:32px;border-radius:50%;background:var(--live);color:#0b1622;font:700 15px 'IBM Plex Mono',monospace;margin-bottom:12px;}
+  .step b{display:block;font-size:16px;margin-bottom:6px;}
+  .step span{font-size:14px;color:var(--text-lo);}
+
+  /* Inclus */
+  .incl{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:6px 24px;margin:0;padding:0;list-style:none;}
+  .incl li{display:flex;gap:10px;font-size:14.5px;padding:8px 0;border-bottom:1px solid var(--hairline);}
+  .incl li::before{content:"✓";color:var(--live);font-weight:700;flex:none;}
+
+  /* Prix */
+  .pricing{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;align-items:stretch;}
+  @media (max-width:760px){.pricing{grid-template-columns:1fr;}}
+  .price-card{background:linear-gradient(160deg, rgba(244,162,97,.14), var(--bg-card) 60%);border:1px solid rgba(244,162,97,.5);border-radius:20px;padding:26px;}
+  .tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:#0b1622;background:var(--gold);border-radius:6px;padding:3px 8px;margin-bottom:14px;}
+  .price{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:52px;line-height:1;}
+  .price small{font-size:16px;color:var(--text-lo);font-weight:400;}
+  .price-sub{color:var(--text-lo);font-size:14.5px;margin:10px 0 18px;}
+  .price-sub b{color:var(--text-hi);font-weight:500;}
+  .price-list{list-style:none;padding:0;margin:0 0 22px;}
+  .price-list li{font-size:14px;padding:5px 0;display:flex;gap:10px;}
+  .price-list li::before{content:"✓";color:var(--amber);font-weight:700;}
+  .side-card{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+  .side-card b{display:block;font-size:15px;margin-bottom:2px;}
+  .side-card span{font-size:13.5px;color:var(--text-lo);}
+
+  /* FAQ */
+  .faq details{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:14px;padding:4px 18px;margin-bottom:10px;}
+  .faq summary{cursor:pointer;padding:14px 0;font-weight:500;list-style:none;display:flex;gap:10px;align-items:baseline;}
+  .faq summary::-webkit-details-marker{display:none;}
+  .faq summary::before{content:"▸";color:var(--live);transition:transform .15s;display:inline-block;}
+  .faq details[open] summary::before{transform:rotate(90deg);}
+  .faq p{margin:0 0 14px;font-size:14.5px;color:var(--text-lo);}
+
+  .closing{text-align:center;background:var(--bg-panel);border:1px solid var(--hairline);border-radius:20px;padding:34px 20px;}
+  .closing p{color:var(--text-lo);margin:0 auto 20px;max-width:52ch;}
+  .closing p.h2big{color:var(--text-hi);max-width:24ch;}
+
+  footer{margin-top:34px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-lo);text-align:center;line-height:1.8;}
+  footer a{color:var(--text-lo);}
+
+  .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;align-items:stretch;}
+  .tier{background:var(--bg-card);border:1px solid var(--hairline);border-radius:20px;padding:24px;display:flex;flex-direction:column;}
+  .tier.main{background:linear-gradient(160deg, rgba(244,162,97,.14), var(--bg-card) 60%);border-color:rgba(244,162,97,.5);}
+  .tier h3{font-family:'Fraunces',serif;font-style:italic;font-weight:600;font-size:21px;margin:0 0 4px;}
+  .tier .for{font-size:13px;color:var(--text-lo);margin:0 0 14px;min-height:38px;}
+  .tier .price{font-size:38px;} .tier .price small{font-size:13px;}
+  .tier .then{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-lo);margin:6px 0 14px;min-height:18px;}
+  .tier .price-list{flex:1;}
+  .tier .cta{justify-content:center;width:100%;}
+  .note{font-size:13px;color:var(--text-lo);margin:14px 0 0;}
+  .trust{background:var(--bg-panel);border:1px solid var(--hairline);border-left:3px solid var(--azure);border-radius:14px;padding:18px 20px;font-size:14.5px;color:var(--text-lo);}
+  .trust b{color:var(--text-hi);font-weight:500;}
+  .trust ul{margin:8px 0 0;padding-left:18px;} .trust li{margin:4px 0;}
+  .sheetmock{background:#fff;border-radius:6px;padding:14px 16px;color:#1c2733;box-shadow:0 10px 30px rgba(0,0,0,.45);transform:rotate(1.5deg);}
+  .sheetmock .k{font:500 8.5px 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#1d4e7a;}
+  .sheetmock .n{font:600 24px 'Fraunces',serif;font-style:normal;line-height:1.1;margin:2px 0 3px;}
+  .sheetmock .m{font-size:10px;color:#5d6b79;border-bottom:2px solid #1d4e7a;padding-bottom:7px;margin-bottom:8px;}
+  .sheetmock .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
+  .sheetmock .kp div{background:#e8eff6;border-radius:5px;padding:4px 7px;font-size:8.5px;color:#5d6b79;}
+  .sheetmock .kp b{display:block;font:600 14px 'Fraunces',serif;color:#1d4e7a;}
+  .sheetmock .st{display:flex;height:16px;margin-top:8px;border-radius:2px;overflow:hidden;}
+  .sheetmock .st i{flex:1;}
+  .sheetmock svg{display:block;width:100%;height:auto;}
+  .footer-signature{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;}
+  .footer-signature img{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px var(--hairline);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <a class="back" href="https://comparateur-meteo.fr/">← comparateur-meteo.fr</a>
+  </div>
+
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Pour les communes et intercommunalités</div>
+      <h1>Le climat de votre commune, sur une page</h1>
+      <p class="lead">Une fiche claire, <b>à l'altitude exacte de votre commune</b> : normales, écart de l'année, extrêmes et évolution depuis 1950. Prête pour le bulletin municipal, le site de la mairie et l'accueil touristique.</p>
+      <div class="cta-row">
+        <a class="cta" href="#formules">Voir les formules</a>
+        <a class="cta cta-2" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Demander une fiche d'essai</a>
+      </div>
+      <div class="price-hint">À partir de <b>150 €</b> par commune</div>
+    </div>
+    <div class="sheetmock" aria-hidden="true">
+        <div class="k">Fiche climat</div><div class="n">Votre commune</div>
+        <div class="m">Savoie · altitude 1 050 m · 2 300 habitants</div>
+        <svg viewBox="0 0 340 108"><line x1="22" x2="334" y1="70" y2="70" stroke="#9fb0c0"/><rect x="26" y="38" width="18" height="62" fill="#9ec3e6" rx="2"/><rect x="52" y="44" width="18" height="56" fill="#9ec3e6" rx="2"/><rect x="78" y="42" width="18" height="58" fill="#9ec3e6" rx="2"/><rect x="104" y="44" width="18" height="56" fill="#9ec3e6" rx="2"/><rect x="130" y="30" width="18" height="70" fill="#9ec3e6" rx="2"/><rect x="156" y="24" width="18" height="76" fill="#9ec3e6" rx="2"/><rect x="182" y="36" width="18" height="64" fill="#9ec3e6" rx="2"/><rect x="208" y="26" width="18" height="74" fill="#9ec3e6" rx="2"/><rect x="234" y="38" width="18" height="62" fill="#9ec3e6" rx="2"/><rect x="260" y="32" width="18" height="68" fill="#9ec3e6" rx="2"/><rect x="286" y="26" width="18" height="74" fill="#9ec3e6" rx="2"/><rect x="312" y="30" width="18" height="70" fill="#9ec3e6" rx="2"/>
+          <polyline points="35,68 61,66 87,59 113,50 139,39 165,30 191,26 217,28 243,35 269,46 295,57 321,66" fill="none" stroke="#d4452d" stroke-width="2"/><polyline points="35,88 61,85 87,77 113,68 139,57 165,50 191,46 217,48 243,55 269,63 295,72 321,83" fill="none" stroke="#2b6cb0" stroke-width="2"/></svg>
+        <div class="kp"><div><b>5,3 °C</b>température moyenne</div><div><b>1 084 mm</b>de pluie par an</div><div><b>295 cm</b>de neige par an</div></div>
+        <div class="st"><i style="background:rgb(82,135,189)"></i><i style="background:rgb(78,132,188)"></i><i style="background:rgb(102,148,196)"></i><i style="background:rgb(90,140,192)"></i><i style="background:rgb(88,139,191)"></i><i style="background:rgb(115,157,201)"></i><i style="background:rgb(154,184,214)"></i><i style="background:rgb(150,181,213)"></i><i style="background:rgb(152,183,214)"></i><i style="background:rgb(120,161,203)"></i><i style="background:rgb(145,178,211)"></i><i style="background:rgb(132,169,207)"></i><i style="background:rgb(130,168,206)"></i><i style="background:rgb(130,167,206)"></i><i style="background:rgb(141,175,210)"></i><i style="background:rgb(193,210,228)"></i><i style="background:rgb(191,209,227)"></i><i style="background:rgb(194,211,228)"></i><i style="background:rgb(197,213,230)"></i><i style="background:rgb(161,189,217)"></i><i style="background:rgb(173,197,221)"></i><i style="background:rgb(199,214,230)"></i><i style="background:rgb(210,222,234)"></i><i style="background:rgb(223,231,238)"></i><i style="background:rgb(229,235,241)"></i><i style="background:rgb(180,202,223)"></i><i style="background:rgb(219,228,237)"></i><i style="background:rgb(228,234,240)"></i><i style="background:rgb(221,229,238)"></i><i style="background:rgb(203,217,232)"></i><i style="background:rgb(227,234,240)"></i><i style="background:rgb(206,219,233)"></i><i style="background:rgb(241,226,228)"></i><i style="background:rgb(241,227,228)"></i><i style="background:rgb(246,244,245)"></i><i style="background:rgb(237,240,244)"></i><i style="background:rgb(236,210,213)"></i><i style="background:rgb(241,229,231)"></i><i style="background:rgb(233,203,207)"></i><i style="background:rgb(233,201,205)"></i><i style="background:rgb(239,220,222)"></i><i style="background:rgb(239,222,224)"></i><i style="background:rgb(234,205,208)"></i><i style="background:rgb(236,212,215)"></i><i style="background:rgb(241,226,228)"></i><i style="background:rgb(236,212,215)"></i><i style="background:rgb(224,172,178)"></i><i style="background:rgb(239,221,223)"></i><i style="background:rgb(238,216,219)"></i><i style="background:rgb(224,172,178)"></i><i style="background:rgb(230,191,196)"></i><i style="background:rgb(223,169,176)"></i><i style="background:rgb(223,169,176)"></i><i style="background:rgb(224,173,180)"></i><i style="background:rgb(209,123,134)"></i><i style="background:rgb(225,175,181)"></i><i style="background:rgb(219,155,163)"></i><i style="background:rgb(222,165,172)"></i><i style="background:rgb(211,131,141)"></i><i style="background:rgb(217,151,159)"></i></div>
+        <div style="display:flex;justify-content:space-between;font:8px 'IBM Plex Mono',monospace;color:#5d6b79;margin-top:2px"><span>1950</span><span>un trait par année</span><span>aujourd'hui</span></div>
+      </div>
+  </header>
+
+  <section>
+    <h2>Pourquoi une fiche climat</h2>
+    <p class="h2big">Des chiffres locaux, lisibles par tous les habitants</p>
+    <div class="args">
+      <div class="arg" style="--accent:var(--amber)"><div class="ico">📰</div>
+        <b>Pour le bulletin municipal</b>
+        <span>Une page A4 prête à imprimer, avec votre logo : l'été, l'hiver ou la neige de l'année replacés dans la durée.</span></div>
+      <div class="arg" style="--accent:var(--live)"><div class="ico">🌡️</div>
+        <b>Pour parler d'adaptation</b>
+        <span>Jours de canicule, de gel, de forte pluie, de neige et de vent fort comparés sur trois périodes : un support simple pour un PCAET, un conseil municipal ou une réunion publique.</span></div>
+      <div class="arg" style="--accent:var(--violet)"><div class="ico">🍃</div>
+        <b>Qualité de l'air, en option</b>
+        <span>L'indice européen mois par mois depuis 2022, le polluant le plus souvent en cause (ozone l'été, particules l'hiver) et la pire journée : de quoi informer les habitants sans jargon.</span></div>
+      <div class="arg" style="--accent:var(--azure)"><div class="ico">🏔️</div>
+        <b>Juste en montagne</b>
+        <span>La fiche est calculée à l'altitude de votre choix : le village, le hameau ou la station, pas la vallée voisine.</span></div>
+      <div class="arg" style="--accent:var(--gold)"><div class="ico">🧳</div>
+        <b>Pour l'accueil touristique</b>
+        <span>« Quand venir » : les mois les plus agréables et la période d'enneigement, à afficher à l'office de tourisme ou sur le site de la commune.</span></div>
+      <div class="arg" style="--accent:var(--teal)"><div class="ico">🎓</div>
+        <b>Pour les écoles</b>
+        <span>La bande de couleurs « un trait par année depuis 1950 » est un support pédagogique immédiat sur le climat local.</span></div>
+      <div class="arg" style="--accent:var(--coral)"><div class="ico">🔒</div>
+        <b>Sans publicité ni compte</b>
+        <span>Aucun cookie ni traceur de ma part, aucune donnée d'habitant : la fiche ne traite que des données météorologiques.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ce que contient la fiche</h2>
+    <p class="h2big">Une seule page A4, tout est dessus</p>
+    <ul class="incl">
+      <li>En-tête : commune, département, altitude, population, logo ou blason</li>
+      <li>Le climat en un coup d'œil : températures et pluie mois par mois (normales 1991–2020)</li>
+      <li>Quatre chiffres clés : température moyenne, pluie, neige, ensoleillement</li>
+      <li>L'année en cours face à la normale : écart de température et de précipitations</li>
+      <li>Depuis 1950 : une bande de couleurs, un trait par année</li>
+      <li>Jours chauds, de gel, de forte pluie, de neige et de vent fort (rafales ≥ 58 km/h) : trois périodes comparées</li>
+      <li>Les extrêmes depuis 1950, avec leurs dates</li>
+      <li>Repères locaux rédigés pour votre commune (mois le plus chaud, le plus arrosé, neige…)</li>
+      <li>Option « Quand venir » pour les communes touristiques</li>
+      <li>Option « Qualité de l'air » : indice européen mois par mois depuis 2022, polluant principal et pire journée</li>
+      <li>Mention « Mairie de … » en pied de page, formats A4 ou A3</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Pour qui ?</h2>
+    <div class="who">
+      <div><b>Les mairies</b>Bulletin municipal, site web, panneau d'affichage, conseil municipal.</div>
+      <div><b>Les intercommunalités</b>Une fiche par commune, avec un tableau comparatif du territoire.</div>
+      <div><b>Les offices de tourisme</b>Accueil, brochure, site : le climat réel du lieu, mois par mois.</div>
+      <div><b>Parcs, syndicats, stations</b>Suivi de l'enneigement et de l'évolution du climat à l'altitude voulue.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Comment ça marche</h2>
+    <p class="h2big">Trois étapes, aucune démarche technique</p>
+    <div class="steps">
+      <div class="step"><b>Vous m'indiquez la commune</b>
+        <span>Nom, altitude souhaitée (chef-lieu, hameau, station), votre logo et la mention à faire figurer en pied de page.</span></div>
+      <div class="step"><b>Je prépare la fiche</b>
+        <span>Elle est livrée sous 5 jours ouvrés en PDF, avec une retouche incluse. La formule web ajoute une page en ligne.</span></div>
+      <div class="step"><b>Vous la diffusez</b>
+        <span>Vous imprimez, publiez le PDF ou mettez le lien sur le site de la commune. La fiche est à vous.</span></div>
+    </div>
+  </section>
+
+  <section id="formules">
+    <h2>Formules</h2>
+    <p class="h2big">Choisissez la durée et le format</p>
+    <div class="tiers">
+      <div class="tier">
+        <h3>Fiche PDF</h3><p class="for">Pour le bulletin municipal ou l'affichage.</p>
+        <div class="price">150 €<small> HT</small></div>
+        <div class="then">une fois, pour une commune</div>
+        <ul class="price-list">
+          <li>Fiche A4 ou A3, avec votre logo</li>
+          <li>Version de l'année, livrée en PDF</li>
+          <li>Une retouche incluse</li>
+          <li>Droit de la reproduire et de la diffuser</li>
+        </ul>
+        <a class="cta cta-2" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Je commande</a>
+      </div>
+      <div class="tier main">
+        <span class="tag">Le plus choisi</span>
+        <h3>Fiche + page web</h3><p class="for">Pour le site de la commune et l'office de tourisme.</p>
+        <div class="price">250 €<small> HT</small></div>
+        <div class="then">première année, puis 120 € HT par an</div>
+        <ul class="price-list">
+          <li>Tout ce que contient la fiche PDF</li>
+          <li>La même fiche en ligne, avec son lien et un QR code</li>
+          <li>Mise à jour des chiffres chaque mois</li>
+          <li>Nouvelle version PDF chaque année</li>
+        </ul>
+        <a class="cta" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Je commande</a>
+      </div>
+      <div class="tier">
+        <h3>Pack territoire</h3><p class="for">Pour une communauté de communes, un parc, un syndicat.</p>
+        <div class="price">Sur devis</div>
+        <div class="then">tarif dégressif selon le nombre de communes</div>
+        <ul class="price-list">
+          <li>Une fiche par commune, au même format</li>
+          <li>Tableau comparatif du territoire</li>
+          <li>Formule PDF ou PDF + web</li>
+          <li>Un seul interlocuteur</li>
+        </ul>
+        <a class="cta cta-2" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Demander un devis</a>
+      </div>
+    </div>
+    <p class="note">Une fiche d'essai peut vous être proposée pour juger du rendu avant de commander. Dans le formulaire, choisissez « Fiche d'essai gratuite » : je vous réponds sous 48 h. Devis et facture fournis.</p>
+  </section>
+
+  <section>
+    <h2>En toute transparence</h2>
+    <div class="trust">
+      <b>Ce que les chiffres sont, et ce qu'ils ne sont pas.</b>
+      <ul>
+        <li>Ils viennent de la <b>réanalyse ERA5</b> (Copernicus / ECMWF) via Open-Meteo : une reconstitution cohérente depuis 1950, pas une mesure sur place.</li>
+        <li>En montagne, les valeurs sont calculées pour le point et l'altitude choisis ; elles peuvent différer d'une station voisine. Les rafales de vent sont souvent sous-estimées sur les crêtes, les cols et le littoral. La fiche l'indique en pied de page.</li>
+        <li>La qualité de l'air vient du <b>service CAMS</b> (Copernicus) : une estimation de la pollution de fond sur des mailles d'une dizaine de kilomètres, disponible <b>depuis 2022 seulement</b>. Elle ne remplace pas les mesures de l'observatoire régional (Atmo).</li>
+        <li>C'est un document d'information sur le climat : <b>il ne remplace pas la vigilance Météo-France</b> et n'a pas de rôle en matière de sécurité civile.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="faq">
+    <h2>Questions fréquentes</h2>
+    <details><summary>Peut-on reproduire la fiche dans le bulletin municipal ?</summary>
+      <p>Oui. La fiche commandée est à vous : vous pouvez l'imprimer, la publier sur le site de la commune et la reproduire dans vos supports. Le pied de page cite les sources des données.</p></details>
+    <details><summary>Pouvez-vous ajouter notre logo et notre mention ?</summary>
+      <p>Oui : logo ou blason en en-tête, et une ligne de pied de page du type « Mairie de … · adresse du site ».</p></details>
+    <details><summary>À quelle altitude est calculée la fiche ?</summary>
+      <p>À celle que vous indiquez : le chef-lieu, un hameau ou la station. Sans précision, j'utilise l'altitude du point de la commune.</p></details>
+    <details><summary>Que se passe-t-il pour une commune de montagne ?</summary>
+      <p>La fiche donne les cumuls et les jours de neige, la période d'enneigement et la plus forte chute depuis 1950. Ces valeurs sont modélisées : je vous recommande de les présenter comme des ordres de grandeur, pas comme des relevés de station.</p></details>
+    <details><summary>La fiche peut-elle parler de pollution de l'air ?</summary>
+      <p>Oui, en option : un graphique de l'indice européen de qualité de l'air mois par mois, la part de jours bons ou moyens, le polluant principal et la pire journée. Les données n'existent que depuis 2022 : on montre donc les dernières années, pas une évolution depuis 1950.</p></details>
+    <details><summary>Les chiffres sont-ils mis à jour ?</summary>
+      <p>Avec la formule web, l'écart de l'année en cours est actualisé chaque mois, et une nouvelle version du PDF est fournie chaque année. La fiche PDF seule correspond à la date de livraison.</p></details>
+    <details><summary>Comment se déroule la commande pour une collectivité ?</summary>
+      <p>Les montants sont modestes : un devis et une facture suffisent en général, sans mise en concurrence formelle. À confirmer auprès de votre service des marchés publics. Je peux fournir les pièces administratives habituelles.</p></details>
+    <details><summary>Collectez-vous des données sur les habitants ?</summary>
+      <p>Non. La fiche ne contient que des données météorologiques et publiques (nom de la commune, altitude, population). Je n'utilise aucun cookie ni traceur de mon côté.</p></details>
+  </section>
+
+  <section class="closing">
+    <p class="h2big">Et si les habitants voyaient enfin le climat de leur commune ?</p>
+    <p>Une fiche d'essai, un devis ou une question : écrivez-moi, je réponds sous 48 h.</p>
+    <div class="cta-row" style="justify-content:center">
+      <a class="cta" href="https://docs.google.com/forms/d/e/1FAIpQLSe0QcjowHtiO25GDu5N6gVKA8BWYnToK7By16Ois5_eSSjEnw/viewform" target="_blank" rel="noopener">Contacter Fernand</a>
+      <a class="cta cta-2" href="#formules">Revoir les formules</a>
+    </div>
+  </section>
+
+  <footer>
+    Données : réanalyse ERA5 (Copernicus / ECMWF) et qualité de l'air CAMS (Copernicus) via Open-Meteo.com (CC BY 4.0) · Population : INSEE<br>
+    <a href="https://comparateur-meteo.fr/presentation.html">Découvrir les six sites</a> ·
+    <a href="https://forms.gle/EMZtxMBJCUE6HJXp8" target="_blank" rel="noopener">✉️ Contact</a>
+    <div class="footer-signature"><img src="logo-fef73.jpg" alt="fef73" width="26" height="26"><span>Créé par fef73 avec claude.ai · 3 octobre 2026</span></div>
+    <div style="margin-top:14px;opacity:.6;">© 2026 Fernand (fef73) — Tous droits réservés</div>
+  </footer>
+</div>
+</body>
+</html>

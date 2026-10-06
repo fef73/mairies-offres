@@ -162,6 +162,12 @@
   .footer-signature img{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px var(--hairline);}
 
   /* Formulaire de demande */
+  .ac{position:relative;}
+  .sug{position:absolute;left:0;right:0;top:100%;margin:4px 0 0;padding:4px;list-style:none;z-index:20;background:var(--bg-card);border:1px solid var(--amber);border-radius:10px;max-height:260px;overflow:auto;box-shadow:0 12px 30px rgba(0,0,0,.5);}
+  .sug li{padding:8px 10px;border-radius:7px;cursor:pointer;font-size:14.5px;}
+  .sug li small{display:block;color:var(--text-lo);font-size:12.5px;}
+  .sug li:hover,.sug li.on{background:var(--bg-panel);}
+
   .req{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:18px;padding:24px;}
   .req fieldset{border:0;padding:0;margin:0 0 18px;min-width:0;}
   .req legend,.req label.t{display:block;font:600 13px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--live);margin-bottom:8px;padding:0;}
@@ -378,8 +384,8 @@
         </div></fieldset>
       <div class="g2" style="margin-bottom:18px">
         <div><label class="t" for="r-communes">Commune(s) concernée(s) *</label>
-          <input type="text" id="r-communes" name="communes" required maxlength="300">
-          <p class="hint">Nom complet de votre commune ou de la communauté de communes.</p></div>
+          <div class="ac"><input type="text" id="r-communes" name="communes" required maxlength="300" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="r-sug"><ul id="r-sug" class="sug" role="listbox" hidden></ul></div>
+          <p class="hint">Tapez 2 lettres et choisissez dans la liste (plusieurs communes possibles, ou saisie libre).</p></div>
         <div><label class="t" for="r-alt">Altitude souhaitée</label>
           <input type="text" id="r-alt" name="altitude" maxlength="200">
           <p class="hint">Chef-lieu, hameau, station ou automatique.</p></div>
@@ -456,6 +462,58 @@
       form.reset();say('ok','Merci, votre demande est bien envoyée. Je vous réponds sous 48 h.');
     }).catch(function(){say('ko','Envoi impossible. Merci de réessayer dans un instant.');}).then(function(){btn.disabled=false;});
   });
+})();
+</script>
+
+<script>
+(function(){
+  var inp=document.getElementById('r-communes'), ul=document.getElementById('r-sug'), alt=document.getElementById('r-alt');
+  if(!inp)return;
+  var timer=null, items=[], cur=-1, seq=0;
+  function close(){ul.hidden=true;inp.setAttribute('aria-expanded','false');cur=-1;}
+  function parts(){var v=inp.value,i=v.lastIndexOf(';');return {head:i<0?'':v.slice(0,i+1)+' ',q:(i<0?v:v.slice(i+1)).trim()};}
+  function pick(i){
+    var it=items[i]; if(!it)return;
+    var h=parts().head;
+    inp.value=h+it.name+(it.admin2?' ('+it.admin2+')':'');
+    if(alt&&!alt.value&&it.elevation!=null)alt.value='Chef-lieu : '+Math.round(it.elevation)+' m';
+    close(); inp.focus();
+  }
+  function show(list){
+    items=list; ul.innerHTML='';
+    list.forEach(function(it,i){
+      var li=document.createElement('li'); li.setAttribute('role','option');
+      li.appendChild(document.createTextNode(it.name));
+      var sm=document.createElement('small');
+      sm.textContent=[it.admin2,it.admin1,it.elevation!=null?Math.round(it.elevation)+' m':''].filter(Boolean).join(' · ')+(it.postcodes&&it.postcodes[0]?' · '+it.postcodes[0]:'');
+      li.appendChild(sm);
+      li.addEventListener('mousedown',function(e){e.preventDefault();pick(i);});
+      ul.appendChild(li);
+    });
+    ul.hidden=!list.length; inp.setAttribute('aria-expanded',String(!!list.length)); cur=-1;
+  }
+  function search(q){
+    var n=++seq;
+    fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=8&language=fr&countryCode=FR&format=json')
+      .then(function(r){return r.json();})
+      .then(function(j){ if(n!==seq)return; show((j.results||[]).filter(function(x){return x.name;})); })
+      .catch(function(){close();});
+  }
+  inp.addEventListener('input',function(){
+    clearTimeout(timer); var q=parts().q;
+    if(q.length<2){close();return;}
+    timer=setTimeout(function(){search(q);},250);
+  });
+  inp.addEventListener('keydown',function(e){
+    if(ul.hidden)return;
+    var lis=ul.children;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault(); cur=(cur+(e.key==='ArrowDown'?1:-1)+lis.length)%lis.length;
+      Array.prototype.forEach.call(lis,function(l,i){l.classList.toggle('on',i===cur);});
+    }else if(e.key==='Enter'&&cur>=0){e.preventDefault();pick(cur);}
+    else if(e.key==='Escape'){close();}
+  });
+  inp.addEventListener('blur',function(){setTimeout(close,150);});
 })();
 </script>
 </body>

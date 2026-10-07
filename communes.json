@@ -3,9 +3,9 @@
     "commune": "Albiez-le-Jeune",
     "actif": true,
     "altitude": 1371,
-    "tour": false,
-    "ski": false,
-    "air": false,
+    "tour": true,
+    "ski": true,
+    "air": true,
     "mention": ""
   },
   "73013": {
@@ -20,11 +20,11 @@
   "73116": {
     "commune": "Fontcouverte-la-Toussuire",
     "actif": true,
-    "altitude": 1350,
     "tour": true,
     "ski": true,
     "air": true,
-    "mention": "Commune de test"
+    "mention": "Commune de test",
+    "altitude": 1800
   },
   "73135": {
     "commune": "La Tour-en-Maurienne",

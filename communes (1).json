@@ -1,0 +1,128 @@
+{
+  "73012": {
+    "commune": "Albiez-le-Jeune",
+    "actif": false,
+    "altitude": 1371,
+    "tour": false,
+    "ski": false,
+    "air": false,
+    "mention": ""
+  },
+  "73013": {
+    "commune": "Albiez-Montrond",
+    "actif": false,
+    "altitude": 1529,
+    "tour": true,
+    "ski": true,
+    "air": false,
+    "mention": ""
+  },
+  "73116": {
+    "commune": "Fontcouverte-la-Toussuire",
+    "actif": true,
+    "altitude": 1350,
+    "tour": true,
+    "ski": true,
+    "air": true,
+    "mention": "Commune de test"
+  },
+  "73135": {
+    "commune": "La Tour-en-Maurienne",
+    "actif": false,
+    "altitude": 553,
+    "tour": false,
+    "ski": false,
+    "air": false,
+    "mention": ""
+  },
+  "73138": {
+    "commune": "Jarrier",
+    "actif": false,
+    "altitude": 1169,
+    "tour": false,
+    "ski": false,
+    "air": false,
+    "mention": ""
+  },
+  "73173": {
+    "commune": "Montricher-Albanne",
+    "actif": false,
+    "altitude": 1515,
+    "tour": true,
+    "ski": true,
+    "air": false,
+    "mention": ""
+  },
+  "73177": {
+    "commune": "Montvernier",
+    "actif": false,
+    "altitude": 831,
+    "tour": true,
+    "ski": false,
+    "air": false,
+    "mention": ""
+  },
+  "73242": {
+    "commune": "Saint-Jean-d'Arves",
+    "actif": false,
+    "altitude": 1423,
+    "tour": true,
+    "ski": true,
+    "air": false,
+    "mention": ""
+  },
+  "73248": {
+    "commune": "Saint-Jean-de-Maurienne",
+    "actif": false,
+    "altitude": 541,
+    "tour": true,
+    "ski": false,
+    "air": false,
+    "mention": ""
+  },
+  "73250": {
+    "commune": "Saint-Julien-Mont-Denis",
+    "actif": false,
+    "altitude": 610,
+    "tour": false,
+    "ski": false,
+    "air": false,
+    "mention": ""
+  },
+  "73267": {
+    "commune": "Saint-Pancrace",
+    "actif": false,
+    "altitude": 831,
+    "tour": false,
+    "ski": false,
+    "air": false,
+    "mention": ""
+  },
+  "73280": {
+    "commune": "Saint-Sorlin-d'Arves",
+    "actif": false,
+    "altitude": 1576,
+    "tour": true,
+    "ski": true,
+    "air": false,
+    "mention": ""
+  },
+  "73318": {
+    "commune": "Villarembert",
+    "actif": false,
+    "altitude": 1305,
+    "tour": true,
+    "ski": true,
+    "air": false,
+    "mention": ""
+  },
+  "73320": {
+    "commune": "Villargondran",
+    "actif": false,
+    "altitude": 568,
+    "tour": false,
+    "ski": false,
+    "air": false,
+    "mention": ""
+  }
+}

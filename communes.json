@@ -68,7 +68,7 @@
     "altitude": 1423,
     "tour": true,
     "ski": true,
-    "air": false,
+    "air": true,
     "mention": ""
   },
   "73248": {
@@ -77,7 +77,7 @@
     "altitude": 541,
     "tour": true,
     "ski": false,
-    "air": false,
+    "air": true,
     "mention": ""
   },
   "73250": {
@@ -93,10 +93,10 @@
     "commune": "Saint-Pancrace",
     "actif": false,
     "altitude": 831,
-    "tour": false,
-    "ski": false,
-    "air": false,
-    "mention": ""
+    "tour": true,
+    "ski": true,
+    "air": true,
+    "mention": "LES BOTTIERES "
   },
   "73280": {
     "commune": "Saint-Sorlin-d'Arves",
@@ -104,7 +104,7 @@
     "altitude": 1576,
     "tour": true,
     "ski": true,
-    "air": false,
+    "air": true,
     "mention": ""
   },
   "73318": {
@@ -113,7 +113,7 @@
     "altitude": 1305,
     "tour": true,
     "ski": true,
-    "air": false,
+    "air": true,
     "mention": ""
   },
   "73320": {

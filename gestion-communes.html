@@ -69,14 +69,16 @@
     <button id="b-add" type="button">Ajouter</button>
     <span class="stat">Le nom et l'altitude sont récupérés automatiquement.</span>
     <span class="sp"></span>
+    <select id="epci" aria-label="Intercommunalité"><option value="">Toutes les intercommunalités</option></select>
+    <button id="b-act" type="button" title="Active toutes les communes actuellement affichées">Activer les communes affichées</button>
     <input id="q" type="text" placeholder="Filtrer…" aria-label="Filtrer">
     <label class="stat"><input id="only" type="checkbox"> actives seulement</label>
   </div>
 
   <div id="msg" class="msg" role="status" aria-live="polite"></div>
   <div class="tw"><table>
-    <thead><tr><th>Active</th><th>INSEE</th><th>Commune</th><th>Altitude (m)</th><th>Ski</th><th>Quand venir</th><th>Air</th><th>Lits</th><th>Station de ski</th><th>Format</th><th>Mention en pied de page</th><th>Logo (fichier)</th><th>Page</th><th></th></tr></thead>
-    <tbody id="rows"><tr><td colspan="14" class="stat" style="padding:20px">Cliquez sur « Charger depuis le site » ou « Ouvrir un fichier… ».</td></tr></tbody>
+    <thead><tr><th>Active</th><th>INSEE</th><th>Commune</th><th>Intercommunalité</th><th>Altitude (m)</th><th>Ski</th><th>Quand venir</th><th>Air</th><th>Lits</th><th>Station de ski</th><th>Format</th><th>Mention en pied de page</th><th>Logo (fichier)</th><th>Page</th><th></th></tr></thead>
+    <tbody id="rows"><tr><td colspan="15" class="stat" style="padding:20px">Cliquez sur « Charger depuis le site » ou « Ouvrir un fichier… ».</td></tr></tbody>
   </table></div>
   <div class="stat" id="count" style="margin-top:8px"></div>
 
@@ -139,10 +141,14 @@ function setData(obj) {
 
 function draw() {
   const q = $('q').value.trim().toLowerCase(), only = $('only').checked;
+  const sel = $('epci'), cur = sel.value, eps = {};
+  Object.values(data).forEach(d => { if (d.epci) eps[d.epci] = d.epciNom || d.epci; });
+  sel.innerHTML = '<option value="">Toutes les intercommunalités</option>' + Object.keys(eps).sort((a, b) => eps[a].localeCompare(eps[b], 'fr')).map(c => `<option value="${esc(c)}"${c === cur ? ' selected' : ''}>${esc(eps[c])}</option>`).join('');
+  const fe = sel.value;
   const keys = Object.keys(data).sort((a, b) => (data[a].commune || a).localeCompare(data[b].commune || b, 'fr'));
   const list = keys.filter(k => {
-    const d = data[k]; if (only && d.actif === false) return false;
-    return !q || k.includes(q) || (d.commune || '').toLowerCase().includes(q);
+    const d = data[k]; if (only && d.actif === false) return false; if (fe && d.epci !== fe) return false;
+    return !q || k.includes(q) || (d.commune || '').toLowerCase().includes(q) || (d.epciNom || '').toLowerCase().includes(q);
   });
   $('rows').innerHTML = list.length ? list.map(k => {
     const d = data[k], on = d.actif !== false;
@@ -150,6 +156,7 @@ function draw() {
       <td class="k c"><label class="sw"><input type="checkbox" data-f="actif" ${on ? 'checked' : ''} aria-label="Active"><span></span></label></td>
       <td class="insee">${esc(k)}</td>
       <td>${esc(d.commune || '—')}</td>
+      <td class="stat">${esc(d.epciNom || '—')}</td>
       <td><input class="alt" type="number" step="1" min="-400" max="6000" data-f="altitude" value="${d.altitude != null ? esc(d.altitude) : ''}" placeholder="auto"></td>
       <td class="c"><input type="checkbox" data-f="ski" ${d.ski ? 'checked' : ''}></td>
       <td class="c"><input type="checkbox" data-f="tour" ${d.tour ? 'checked' : ''}></td>
@@ -161,7 +168,7 @@ function draw() {
       <td><input class="logo" type="text" data-f="logo" value="${esc(d.logo || '')}" placeholder="logo-xxxxx.png"></td>
       <td><a href="${SITE}commune.html?insee=${encodeURIComponent(k)}" target="_blank" rel="noopener">Ouvrir</a></td>
       <td><button class="x" type="button" data-del title="Supprimer" aria-label="Supprimer">✕</button></td></tr>`;
-  }).join('') : '<tr><td colspan="14" class="stat" style="padding:20px">Aucune commune.</td></tr>';
+  }).join('') : '<tr><td colspan="15" class="stat" style="padding:20px">Aucune commune.</td></tr>';
   const all = Object.keys(data), act = all.filter(k => data[k].actif !== false).length;
   $('count').textContent = loaded ? `${all.length} commune(s) · ${act} active(s) · ${all.length - act} inactive(s)` : '';
 }
@@ -187,6 +194,13 @@ $('rows').addEventListener('click', e => {
   const k = b.closest('tr').dataset.k;
   if (confirm('Supprimer ' + (data[k].commune || k) + ' (' + k + ') de la liste ?\nPour une résiliation, il suffit de la désactiver.')) { delete data[k]; setDirty(true); draw(); }
 });
+$('epci').addEventListener('change', draw);
+$('b-act').addEventListener('click', () => {
+  const ks = [...document.querySelectorAll('#rows tr[data-k]')].map(t => t.dataset.k).filter(k => data[k].actif === false);
+  if (!ks.length) return msg('Toutes les communes affichées sont déjà actives.');
+  if (!confirm('Activer ' + ks.length + ' commune(s) affichée(s) ?')) return;
+  ks.forEach(k => data[k].actif = true); setDirty(true); draw(); msg(ks.length + ' commune(s) activée(s).');
+});
 $('q').addEventListener('input', draw); $('only').addEventListener('change', draw);
 
 // Chargement
@@ -210,9 +224,9 @@ $('b-add').addEventListener('click', async () => {
   if (data[k]) return msg('Cette commune existe déjà : ' + (data[k].commune || k) + '.', true);
   $('b-add').disabled = true; msg('Recherche de la commune…');
   try {
-    const r = await fetch('https://geo.api.gouv.fr/communes/' + encodeURIComponent(k) + '?fields=nom,centre&format=json&geometry=centre');
+    const r = await fetch('https://geo.api.gouv.fr/communes/' + encodeURIComponent(k) + '?fields=nom,centre,epci&format=json&geometry=centre');
     if (!r.ok) throw new Error('Code INSEE introuvable');
-    const g = await r.json(); const o = { commune: g.nom, actif: false };
+    const g = await r.json(); const o = { commune: g.nom, actif: false }; if (g.epci) { o.epci = g.epci.code; o.epciNom = g.epci.nom; }
     try {
       const [lon, lat] = g.centre.coordinates;
       const e = await (await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`)).json();

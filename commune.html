@@ -374,8 +374,8 @@ function render(p, R, alt, o) {
   const build = () => { sheet.innerHTML = `<div class="sh-in">
     <div class="sh-head">${logoData ? `<img class="logo" src="${logoData}" alt="">` : ''}
       <div class="tt"><div class="kicker">Fiche climat</div><h2>${esc(p.name)}</h2>
-      <div class="meta">${esc([place, `altitude ${fr(alt, 0)} m`, p.population ? `${fr(p.population, 0)} habitants` : null, o.lits ? `${fr(o.lits, 0)} lits touristiques` : null].filter(Boolean).join(' · '))}</div></div></div>
-    ${o.stn ? stnBlock(o.stn) : ''}
+      <div class="meta">${esc([place, `altitude ${fr(alt, 0)} m`, p.population ? `${fr(p.population, 0)} habitants` : null, o.lits ? `${fr(o.lits, 0)} lits touristiques${o.stn ? ' (commune)' : ''}` : null].filter(Boolean).join(' · '))}</div></div></div>
+    ${o.stn ? stnBlock(o.stn, p.name) : ''}
     <div class="sh-sec"><h3>Le climat en un coup d'œil <span style="letter-spacing:0;text-transform:none;color:#5d6b79;font-family:'Space Grotesk',sans-serif;font-size:10.5px;white-space:nowrap">· normales 1991–2020 (c'est la moyenne de chaque mois sur les 30 années de 1991 à 2020)</span></h3>
       ${climogram(R, o.color, o.ski)}
       <div class="kpis">
@@ -455,19 +455,21 @@ window.addEventListener('afterprint', fit);
 // ---------- Section « Station de ski » (données du dépôt COMCOM-PDF) ----------
 const stationRec = async insee => (await stationsData()).communes[insee] || null;
 const stnNoteOf = D => 'données station : relevé du ' + dateFr(D.meta.dateReleve) + ', sources publiques';
-function stnBlock(s) {
+function stnBlock(s, com) {
+  const nz = x => String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const sub = !!com && nz(s.station) !== nz(com) && !nz(com).includes(nz(s.station)) && !nz(s.station).includes(nz(com));
   const n = v => v == null ? 'n.c.' : fr(v, 0);
   const same = s.kmPistesStation != null && s.kmPistesStation === s.kmPistesDomaine;
   const pistes = s.kmPistesStation != null ? s.kmPistesStation : s.kmPistesDomaine;
-  const pLab = same || s.kmPistesDomaine == null || s.kmPistesStation == null ? 'de pistes' + (s.kmPistesStation == null && s.kmPistesDomaine != null ? ' (domaine)' : '') : `de pistes en station · ${fr(s.kmPistesDomaine, 0)} km sur le domaine`;
+  const pLab = same || s.kmPistesDomaine == null || s.kmPistesStation == null ? 'de pistes' + (sub ? ' de ' + esc(s.station) : '') + (s.kmPistesStation == null && s.kmPistesDomaine != null ? ' (domaine)' : '') : `de pistes ${sub ? 'à ' + esc(s.station) : 'en station'} · ${fr(s.kmPistesDomaine, 0)} km sur le domaine`;
   const alt = s.altitudeBasse != null && s.altitudeHaute != null ? `Remontées de ${fr(s.altitudeBasse, 0)} à ${fr(s.altitudeHaute, 0)} m${s.denivele ? ' (dénivelé ' + fr(s.denivele, 0) + ' m)' : ''}.` : '';
-  return `<div class="sh-sec"><h3>Station de ski · ${esc(s.station)}</h3>
+  return `<div class="sh-sec"><h3>Station de ski · ${esc(s.station)}${sub ? ' (commune de ' + esc(com) + ')' : ''}</h3>
     <div class="stn">
       <div class="w3"><b>${esc(s.vallee || 'n.c.')}</b><span>vallée</span></div>
       <div class="w3"><b>${esc(s.domaineSkiable || 'n.c.')}</b><span>domaine skiable</span></div>
-      <div class="w2"><b>${n(s.remonteesMecaniques)}</b><span>remontées mécaniques</span></div>
+      <div class="w2"><b>${n(s.remonteesMecaniques)}</b><span>remontées mécaniques${sub ? ' à ' + esc(s.station) : ''}</span></div>
       <div class="w2"><b>${pistes == null ? 'n.c.' : fr(pistes, 0) + ' km'}</b><span>${pLab}</span></div>
-      <div class="w2"><b>${n(s.litsTouristiques)}</b><span>lits touristiques${s.litsAnnee ? ' (données ' + esc(s.litsAnnee) + ')' : ''}</span></div>
+      <div class="w2"><b>${n(s.litsTouristiques)}</b><span>lits touristiques${sub ? ' à ' + esc(s.station) : ''}${s.litsAnnee ? ' (données ' + esc(s.litsAnnee) + ')' : ''}</span></div>
     </div>${alt ? `<div class="ski-cap">${alt}</div>` : ''}</div>`;
 }
 

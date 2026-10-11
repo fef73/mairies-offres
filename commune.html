@@ -384,17 +384,17 @@ function render(p, R, alt, o) {
         <div class="kpi"><b>${R.annSn >= 1 ? fr(R.annSn, 0) + ' cm' : '—'}</b><span>de neige par an</span></div>
         <div class="kpi"><b>${R.annSu ? fr(R.annSu, 0) + ' h' : '—'}</b><span>d'ensoleillement par an</span></div>
       </div></div>
-    <div class="sh-sec"><h3>${esc(ytdTitle)} face à la normale</h3>
+    ${o.ytd ? `<div class="sh-sec"><h3>${esc(ytdTitle)} face à la normale</h3>
       <div class="ytd">
         <div class="big"><b class="${dT > 0 ? 'warm' : 'cold'}">${dT == null ? '—' : sgn(dT) + ' °C'}</b><span>écart de température à la normale 1991–2020</span></div>
         <div class="big"><b>${dP == null ? '—' : sgn(dP, 0) + ' %'}</b><span>précipitations (${fr(k.prSum, 0)} mm contre ${fr(k.refPr, 0)} mm en moyenne)</span></div>
         <div class="txt">${dT == null ? '' : `Période ${dT >= 0.3 ? 'plus chaude' : dT <= -0.3 ? 'plus fraîche' : 'proche de la normale'}${dP != null ? `, ${dP >= 15 ? 'plus arrosée' : dP <= -15 ? 'plus sèche' : 'avec des pluies dans la norme'}` : ''}. Comparaison sur la même fenêtre calendaire.`}</div>
-      </div></div>
-    <div class="sh-sec"><h3>Depuis ${R.years[0]} · un trait par année</h3>
+      </div></div>` : ''}
+    ${o.hist ? `<div class="sh-sec"><h3>Depuis ${R.years[0]} · un trait par année</h3>
       ${stripes(R)}
       <div class="stripes-cap"><span>${R.years[0]}</span><span>bleu : plus frais que 1991–2020 · rouge : plus chaud</span><span>${R.lastFull}</span></div>
       <table class="ind"><tr><th>Jours par an en moyenne</th>${R.periods.map(([a, b]) => `<th>${a}–${b}</th>`).join('')}</tr>
-        ${R.ind.map(r => `<tr><td>${r.label}</td>${r.vals.map(v => `<td>${fr(v, v < 10 ? 1 : 0)}</td>`).join('')}</tr>`).join('')}</table></div>
+        ${R.ind.map(r => `<tr><td>${r.label}</td>${r.vals.map(v => `<td>${fr(v, v < 10 ? 1 : 0)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}
     ${o.ski ? skiBlock(R, o.color) : ''}
     ${o.air ? airBlock(o.airData) : ''}
     <div class="sh-sec"><h3>Les extrêmes depuis ${R.years[0]}</h3>
@@ -505,7 +505,7 @@ function etat(titre, html) { $('app').hidden = true; const s = $('state'); s.hid
     if (conf.logo) logoData = conf.logo;
     if (conf.format === 'A3') $('page-size').textContent = '@page { size: A3 portrait; margin: 0; }';
     render({ name: conf.nom || g.nom, admin1: g.region && g.region.nom, admin2: g.departement && g.departement.nom, population: g.population, lat, lon }, R, alt,
-      { color: conf.couleur || '#1d4e7a', lits, litsNote, stn, stnNote, mention: conf.mention || '', tour: !!conf.tour, ski: !!conf.ski, air: !!conf.air, airData });
+      { color: conf.couleur || '#1d4e7a', lits, litsNote, stn, stnNote, mention: conf.mention || '', tour: !!conf.tour, ski: !!conf.ski, air: !!conf.air, ytd: conf.ytd !== false, hist: conf.hist !== false, airData });
   } catch (e) { etat('Données momentanément indisponibles', '<p>Impossible de charger la fiche. Merci de réessayer dans un instant.</p>'); }
 })();
 $('print').addEventListener('click', () => { const s = $('sheet'); if (s) s.style.transform = 'none'; window.print(); });

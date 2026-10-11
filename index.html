@@ -33,6 +33,10 @@
   .suggest button{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--hairline);color:var(--text-hi);padding:9px 12px;cursor:pointer;font:13px 'Space Grotesk',sans-serif;}
   .suggest button:last-child{border-bottom:none;} .suggest button:hover{background:#1a3350;}
   .suggest small{color:var(--text-lo);font-size:11px;margin-left:4px;}
+  .stn{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:6px;}
+  .stn div{background:var(--ac-soft);border-radius:8px;padding:7px 10px;} .stn .w3{grid-column:span 3;} .stn .w2{grid-column:span 2;}
+  .stn b{display:block;font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--ac);line-height:1.2;}
+  .stn span{font-size:10.5px;color:var(--mute);}
   .hidden{display:none !important;}
   .btns{display:flex;gap:10px;margin-top:6px;}
   .btn{flex:1;border:none;border-radius:10px;padding:11px 12px;font:600 14px 'Space Grotesk',sans-serif;cursor:pointer;background:var(--live);color:#06231a;}
@@ -151,7 +155,10 @@
       </div>
       <div class="field"><label class="check"><input type="checkbox" id="f-tour"> Ajouter « Quand venir » (communes touristiques)</label>
         <label class="check"><input type="checkbox" id="f-air"> Qualité de l'air : indice européen par mois (données depuis 2022)</label>
-        <label class="check"><input type="checkbox" id="f-ski"> Station de ski : cumul de neige par saison depuis 1950</label></div>
+        <label class="check"><input type="checkbox" id="f-ski"> Station de ski : cumul de neige par saison depuis 1950</label>
+        <label class="check"><input type="checkbox" id="f-stn"> Station de ski : vallée, domaine, remontées, pistes, lits</label>
+        <select id="f-stn-pick" class="hidden" style="margin-top:6px" aria-label="Station"></select>
+        <p class="hint" id="stn-hint"></p></div>
       <div class="btns">
         <button class="btn" id="go" type="button">Générer</button>
         <button class="btn alt" id="print" type="button" disabled>PDF / Imprimer</button>
@@ -215,8 +222,8 @@ async function getJSON(url) { const r = await fetch(url); if (!r.ok) throw new E
 const STATIONS_URL = 'https://raw.githubusercontent.com/fef73/COMCOM-PDF/main/donnees/stations-ski-savoie.json';
 let stationsP = null;
 const stationsData = () => stationsP || (stationsP = getJSON(STATIONS_URL).catch(e => { stationsP = null; throw e; }));
-async function litsFor(insee) {
-  const c = (await stationsData()).communes[insee]; if (!c) return null;
+async function litsFor(insee) { const c = (await stationsData()).communes[insee]; return c ? litsOf(c) : null; }
+function litsOf(c) {
   const v = c.stations.map(s => s.litsTouristiques).filter(x => typeof x === 'number'); if (!v.length) return null;
   const an = [...new Set(c.stations.map(s => s.litsAnnee).filter(Boolean))].join(' / ');
   return { lits: v.reduce((a, b) => a + b, 0), note: 'Savoie Mont Blanc' + (an ? ' (' + an + ')' : ''), stations: c.stations.map(s => s.station).join(' + ') };
@@ -237,6 +244,26 @@ async function fetchAll(p, elev) {
     out.pr.push(...d.precipitation_sum); out.sn.push(...d.snowfall_sum); out.su.push(...d.sunshine_duration); out.wg.push(...(d.wind_gusts_10m_max || []));
   }
   return out;
+}
+
+
+// ---------- Section « Station de ski » (données du dépôt COMCOM-PDF) ----------
+const stationRec = async insee => (await stationsData()).communes[insee] || null;
+const stnNoteOf = D => 'données station : relevé du ' + dateFr(D.meta.dateReleve) + ', sources publiques';
+function stnBlock(s) {
+  const n = v => v == null ? 'n.c.' : fr(v, 0);
+  const same = s.kmPistesStation != null && s.kmPistesStation === s.kmPistesDomaine;
+  const pistes = s.kmPistesStation != null ? s.kmPistesStation : s.kmPistesDomaine;
+  const pLab = same || s.kmPistesDomaine == null || s.kmPistesStation == null ? 'de pistes' + (s.kmPistesStation == null && s.kmPistesDomaine != null ? ' (domaine)' : '') : `de pistes en station · ${fr(s.kmPistesDomaine, 0)} km sur le domaine`;
+  const alt = s.altitudeBasse != null && s.altitudeHaute != null ? `Remontées de ${fr(s.altitudeBasse, 0)} à ${fr(s.altitudeHaute, 0)} m${s.denivele ? ' (dénivelé ' + fr(s.denivele, 0) + ' m)' : ''}.` : '';
+  return `<div class="sh-sec"><h3>Station de ski · ${esc(s.station)}</h3>
+    <div class="stn">
+      <div class="w3"><b>${esc(s.vallee || 'n.c.')}</b><span>vallée</span></div>
+      <div class="w3"><b>${esc(s.domaineSkiable || 'n.c.')}</b><span>domaine skiable</span></div>
+      <div class="w2"><b>${n(s.remonteesMecaniques)}</b><span>remontées mécaniques</span></div>
+      <div class="w2"><b>${pistes == null ? 'n.c.' : fr(pistes, 0) + ' km'}</b><span>${pLab}</span></div>
+      <div class="w2"><b>${n(s.litsTouristiques)}</b><span>lits touristiques${s.litsAnnee ? ' (données ' + esc(s.litsAnnee) + ')' : ''}</span></div>
+    </div>${alt ? `<div class="ski-cap">${alt}</div>` : ''}</div>`;
 }
 
 // ---------- Qualité de l'air (CAMS via Open-Meteo, horaire, depuis août 2022) ----------
@@ -448,6 +475,7 @@ function render(p, R, alt, o) {
     <div class="sh-head">${logoData ? `<img class="logo" src="${logoData}" alt="">` : ''}
       <div class="tt"><div class="kicker">Fiche climat</div><h2>${esc(p.name)}</h2>
       <div class="meta">${esc([place, `altitude ${fr(alt, 0)} m`, p.population ? `${fr(p.population, 0)} habitants` : null, o.lits ? `${fr(o.lits, 0)} lits touristiques` : null].filter(Boolean).join(' · '))}</div></div></div>
+    ${o.stn ? stnBlock(o.stn) : ''}
     <div class="sh-sec"><h3>Le climat en un coup d'œil <span style="letter-spacing:0;text-transform:none;color:#5d6b79;font-family:'Space Grotesk',sans-serif;font-size:10.5px;white-space:nowrap">· normales 1991–2020 (c'est la moyenne de chaque mois sur les 30 années de 1991 à 2020)</span></h3>
       ${climogram(R, o.color, o.ski)}
       <div class="kpis">
@@ -478,7 +506,7 @@ function render(p, R, alt, o) {
       </div></div>
     <div class="sh-sec"><h3>Repères locaux</h3><div class="local"><ul>${L.map(x => `<li>${x}</li>`).join('')}</ul></div></div>
     ${tourBlock}
-    <div class="sh-foot"><div>Sources : réanalyse ERA5 (Copernicus / ECMWF) via Open-Meteo, ${yrs} ; normales 1991–2020${o.air ? ' ; qualité de l\'air : CAMS (Copernicus) via Open-Meteo' : ''}${o.litsNote ? ' ; lits touristiques : ' + o.litsNote : ''}. Valeurs modélisées au point ${fr(p.lat, 3)}° N, ${fr(p.lon, 3)}° E à ${fr(alt, 0)} m : elles peuvent différer des mesures d'une station. Fiche établie le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}.</div>
+    <div class="sh-foot"><div>Sources : réanalyse ERA5 (Copernicus / ECMWF) via Open-Meteo, ${yrs} ; normales 1991–2020${o.air ? ' ; qualité de l\'air : CAMS (Copernicus) via Open-Meteo' : ''}${o.litsNote ? ' ; lits touristiques : ' + o.litsNote : ''}${o.stn ? ' ; ' + o.stnNote : ''}. Valeurs modélisées au point ${fr(p.lat, 3)}° N, ${fr(p.lon, 3)}° E à ${fr(alt, 0)} m : elles peuvent différer des mesures d'une station. Fiche établie le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}.</div>
       <div class="r">${o.mention ? `<div class="mention">${esc(o.mention)}</div>` : ''}Document informatif : ne remplace pas la vigilance Météo-France.<br>© ${new Date().getFullYear()} fef73</div></div></div>`; };
   const wrap = $('wrap'); $('empty') && $('empty').remove(); if (!sheet.parentNode) wrap.appendChild(sheet);
   // mise en page : si la fiche doit être réduite, on redessine les graphiques à la largeur voulue
@@ -577,19 +605,28 @@ $('go').addEventListener('click', async () => {
     const alt = elev != null ? elev : (D.elevation != null ? D.elevation : (chosen.elevation || 0));
     current = { chosen, R, alt };
     render({ name: chosen.name, admin1: chosen.admin1, admin2: chosen.admin2, population: chosen.population, lat: chosen.latitude, lon: chosen.longitude }, R, alt,
-      { color: $('f-color').value, lits: parseLits(), litsNote: litsAuto && parseLits() === litsAuto.lits ? litsAuto.note : '', mention: $('f-mention').value.trim(), tour: $('f-tour').checked, ski: $('f-ski').checked, air: $('f-air').checked, airData });
+      { color: $('f-color').value, stn: $('f-stn').checked && stnRec && stnRec.stations.length ? stnRec.stations[+$('f-stn-pick').value || 0] : null, stnNote: stnMeta ? stnNoteOf({ meta: stnMeta }) : '', lits: parseLits(), litsNote: litsAuto && parseLits() === litsAuto.lits ? litsAuto.note : '', mention: $('f-mention').value.trim(), tour: $('f-tour').checked, ski: $('f-ski').checked, air: $('f-air').checked, airData });
     $('print').disabled = false; msg('Fiche prête.');
   } catch (e) { delete cache[`${chosen.latitude},${chosen.longitude},${elev}`]; msg('Impossible de récupérer les données. Réessayez dans un instant.', true); }
   $('go').disabled = false;
 });
-let litsAuto = null;
+let litsAuto = null, stnRec = null, stnMeta = null;
+function fillStnPick() {
+  const p = $('f-stn-pick'), st = stnRec ? stnRec.stations : [];
+  p.innerHTML = st.map((s, i) => `<option value="${i}">${esc(s.station)}</option>`).join('');
+  p.classList.toggle('hidden', !($('f-stn').checked && st.length > 1));
+  $('stn-hint').textContent = $('f-stn').checked && !st.length ? 'Pas de donnée station pour cette commune.' : '';
+}
+$('f-stn').addEventListener('change', () => { fillStnPick(); if (current) $('go').click(); });
+$('f-stn-pick').addEventListener('change', () => { if (current) $('go').click(); });
 async function lookupLits() {
   litsAuto = null; const h = $('lits-hint'), c = chosen; if (!c) return;
   const base = 'Si renseigné, « N lits touristiques » s\'affiche sous le nom de la commune. Rempli automatiquement pour les stations de Savoie.';
   h.textContent = 'Recherche des lits touristiques…';
   try {
     const r = await getJSON(`https://geo.api.gouv.fr/communes?lat=${c.latitude}&lon=${c.longitude}&fields=code&format=json`);
-    const res = r[0] && await litsFor(r[0].code);
+    const rec = r[0] ? await stationRec(r[0].code) : null; stnRec = rec; stnMeta = rec ? (await stationsData()).meta : null; fillStnPick();
+    const res = rec && litsOf(rec);
     if (c !== chosen) return;
     if (res) { $('f-lits').value = fr(res.lits, 0); litsAuto = res; h.textContent = `Trouvé : ${res.stations} · ${res.note}. Modifiable ; vider le champ pour ne rien afficher.`; }
     else { $('f-lits').value = ''; h.textContent = 'Pas de donnée pour cette commune : saisir à la main si besoin.'; }

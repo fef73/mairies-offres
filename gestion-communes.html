@@ -31,7 +31,7 @@
   .sw input:checked + span{background:var(--ok);} .sw input:checked + span::before{transform:translateX(16px);}
   .sw input:focus-visible + span{outline:2px solid var(--hi);}
   td input[type=checkbox]{width:17px;height:17px;accent-color:var(--ok);}
-  td input.alt{width:80px;} td input.men{width:100%;min-width:200px;} td input.logo{width:130px;}
+  td input.alt{width:80px;} td input.men{width:100%;min-width:200px;} td input.logo{width:130px;} td input.lits{width:80px;} td input.stn{width:110px;}
   a{color:var(--ok);} .x{color:var(--bad);border-color:transparent;background:none;} .x:hover{border-color:var(--bad);}
   .stat{color:var(--lo);font-size:13px;} .dirty{color:var(--warn);font-weight:600;}
   .add input{width:110px;}
@@ -75,8 +75,8 @@
 
   <div id="msg" class="msg" role="status" aria-live="polite"></div>
   <div class="tw"><table>
-    <thead><tr><th>Active</th><th>INSEE</th><th>Commune</th><th>Altitude (m)</th><th>Ski</th><th>Quand venir</th><th>Air</th><th>Format</th><th>Mention en pied de page</th><th>Logo (fichier)</th><th>Page</th><th></th></tr></thead>
-    <tbody id="rows"><tr><td colspan="12" class="stat" style="padding:20px">Cliquez sur « Charger depuis le site » ou « Ouvrir un fichier… ».</td></tr></tbody>
+    <thead><tr><th>Active</th><th>INSEE</th><th>Commune</th><th>Altitude (m)</th><th>Ski</th><th>Quand venir</th><th>Air</th><th>Lits</th><th>Station de ski</th><th>Format</th><th>Mention en pied de page</th><th>Logo (fichier)</th><th>Page</th><th></th></tr></thead>
+    <tbody id="rows"><tr><td colspan="14" class="stat" style="padding:20px">Cliquez sur « Charger depuis le site » ou « Ouvrir un fichier… ».</td></tr></tbody>
   </table></div>
   <div class="stat" id="count" style="margin-top:8px"></div>
 
@@ -86,7 +86,7 @@
       <li>Sur GitHub, dépôt <code>mairies-offres</code> : « Add file → Upload files », dépose le fichier (il remplace l'ancien), puis « Commit changes ».</li>
       <li>La modification est visible 1 à 2 minutes plus tard (Ctrl+F5 pour recharger).</li>
     </ol>
-    Altitude vide = altitude automatique d'Open-Meteo. Le logo est le nom d'un fichier déposé dans le dépôt (ex. <code>logo-73116.png</code>).
+    Altitude vide = altitude automatique d'Open-Meteo. Lits : vide = automatique, nombre = imposé, 0 = masqué. Station de ski : vide = pas de section, « oui » = station automatique, ou nom de la station. Le logo est le nom d'un fichier déposé dans le dépôt (ex. <code>logo-73116.png</code>).
   </div>
 </div>
 <script>
@@ -154,12 +154,14 @@ function draw() {
       <td class="c"><input type="checkbox" data-f="ski" ${d.ski ? 'checked' : ''}></td>
       <td class="c"><input type="checkbox" data-f="tour" ${d.tour ? 'checked' : ''}></td>
       <td class="c"><input type="checkbox" data-f="air" ${d.air ? 'checked' : ''}></td>
+      <td><input class="lits" type="text" data-f="lits" value="${d.lits === false ? '0' : d.lits > 0 ? esc(d.lits) : ''}" placeholder="auto" title="vide = automatique (dataset) · nombre = valeur imposée · 0 = ne pas afficher"></td>
+      <td><input class="stn" type="text" data-f="station" value="${d.station === true ? 'oui' : typeof d.station === 'string' ? esc(d.station) : ''}" placeholder="non" title="vide = pas de section · oui = station auto · ou nom de la station"></td>
       <td><select data-f="format"><option${d.format === 'A3' ? '' : ' selected'}>A4</option><option${d.format === 'A3' ? ' selected' : ''}>A3</option></select></td>
       <td><input class="men" type="text" data-f="mention" value="${esc(d.mention || '')}" placeholder="Mairie de … · www.…"></td>
       <td><input class="logo" type="text" data-f="logo" value="${esc(d.logo || '')}" placeholder="logo-xxxxx.png"></td>
       <td><a href="${SITE}commune.html?insee=${encodeURIComponent(k)}" target="_blank" rel="noopener">Ouvrir</a></td>
       <td><button class="x" type="button" data-del title="Supprimer" aria-label="Supprimer">✕</button></td></tr>`;
-  }).join('') : '<tr><td colspan="12" class="stat" style="padding:20px">Aucune commune.</td></tr>';
+  }).join('') : '<tr><td colspan="14" class="stat" style="padding:20px">Aucune commune.</td></tr>';
   const all = Object.keys(data), act = all.filter(k => data[k].actif !== false).length;
   $('count').textContent = loaded ? `${all.length} commune(s) · ${act} active(s) · ${all.length - act} inactive(s)` : '';
 }
@@ -173,6 +175,8 @@ function edit(el) {
   else if (f === 'ski' || f === 'tour' || f === 'air') d[f] = el.checked;
   else if (f === 'altitude') { const v = el.value.trim().replace(',', '.'); if (v === '') delete d.altitude; else if (isFinite(+v)) d.altitude = Math.round(+v); }
   else if (f === 'format') { if (el.value === 'A3') d.format = 'A3'; else delete d.format; }
+  else if (f === 'lits') { const v = el.value.trim().replace(/\s/g, ''); if (v === '') delete d.lits; else if (v === '0') d.lits = false; else if (+v > 0) d.lits = Math.round(+v); }
+  else if (f === 'station') { const v = el.value.trim(); if (v === '' || /^(non|no|0)$/i.test(v)) delete d.station; else if (/^(oui|auto|true|1)$/i.test(v)) d.station = true; else d.station = v; }
   else if (f === 'mention') d.mention = el.value;
   else if (f === 'logo') { const v = el.value.trim(); if (v) d.logo = v; else delete d.logo; }
   setDirty(true);

@@ -103,6 +103,10 @@
   .page-foot .sig img{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px var(--hairline);}
   @media print{.page-foot{display:none;}}
   .app{display:block;max-width:900px;}
+  .stn{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:6px;}
+  .stn div{background:var(--ac-soft);border-radius:8px;padding:7px 10px;} .stn .w3{grid-column:span 3;} .stn .w2{grid-column:span 2;}
+  .stn b{display:block;font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--ac);line-height:1.2;}
+  .stn span{font-size:10.5px;color:var(--mute);}
   [hidden]{display:none !important;}
   .top{max-width:794px;margin:0 auto 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
   .top .nm{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-lo);}
@@ -138,8 +142,8 @@ async function getJSON(url) { const r = await fetch(url); if (!r.ok) throw new E
 const STATIONS_URL = 'https://raw.githubusercontent.com/fef73/COMCOM-PDF/main/donnees/stations-ski-savoie.json';
 let stationsP = null;
 const stationsData = () => stationsP || (stationsP = getJSON(STATIONS_URL).catch(e => { stationsP = null; throw e; }));
-async function litsFor(insee) {
-  const c = (await stationsData()).communes[insee]; if (!c) return null;
+async function litsFor(insee) { const c = (await stationsData()).communes[insee]; return c ? litsOf(c) : null; }
+function litsOf(c) {
   const v = c.stations.map(s => s.litsTouristiques).filter(x => typeof x === 'number'); if (!v.length) return null;
   const an = [...new Set(c.stations.map(s => s.litsAnnee).filter(Boolean))].join(' / ');
   return { lits: v.reduce((a, b) => a + b, 0), note: 'Savoie Mont Blanc' + (an ? ' (' + an + ')' : ''), stations: c.stations.map(s => s.station).join(' + ') };
@@ -371,6 +375,7 @@ function render(p, R, alt, o) {
     <div class="sh-head">${logoData ? `<img class="logo" src="${logoData}" alt="">` : ''}
       <div class="tt"><div class="kicker">Fiche climat</div><h2>${esc(p.name)}</h2>
       <div class="meta">${esc([place, `altitude ${fr(alt, 0)} m`, p.population ? `${fr(p.population, 0)} habitants` : null, o.lits ? `${fr(o.lits, 0)} lits touristiques` : null].filter(Boolean).join(' · '))}</div></div></div>
+    ${o.stn ? stnBlock(o.stn) : ''}
     <div class="sh-sec"><h3>Le climat en un coup d'œil <span style="letter-spacing:0;text-transform:none;color:#5d6b79;font-family:'Space Grotesk',sans-serif;font-size:10.5px;white-space:nowrap">· normales 1991–2020 (c'est la moyenne de chaque mois sur les 30 années de 1991 à 2020)</span></h3>
       ${climogram(R, o.color, o.ski)}
       <div class="kpis">
@@ -401,7 +406,7 @@ function render(p, R, alt, o) {
       </div></div>
     <div class="sh-sec"><h3>Repères locaux</h3><div class="local"><ul>${L.map(x => `<li>${x}</li>`).join('')}</ul></div></div>
     ${tourBlock}
-    <div class="sh-foot"><div>Sources : réanalyse ERA5 (Copernicus / ECMWF) via Open-Meteo, ${yrs} ; normales 1991–2020${o.air ? ' ; qualité de l\'air : CAMS (Copernicus) via Open-Meteo' : ''}${o.litsNote ? ' ; lits touristiques : ' + o.litsNote : ''}. Valeurs modélisées au point ${fr(p.lat, 3)}° N, ${fr(p.lon, 3)}° E à ${fr(alt, 0)} m : elles peuvent différer des mesures d'une station. Fiche établie le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}.</div>
+    <div class="sh-foot"><div>Sources : réanalyse ERA5 (Copernicus / ECMWF) via Open-Meteo, ${yrs} ; normales 1991–2020${o.air ? ' ; qualité de l\'air : CAMS (Copernicus) via Open-Meteo' : ''}${o.litsNote ? ' ; lits touristiques : ' + o.litsNote : ''}${o.stn ? ' ; ' + o.stnNote : ''}. Valeurs modélisées au point ${fr(p.lat, 3)}° N, ${fr(p.lon, 3)}° E à ${fr(alt, 0)} m : elles peuvent différer des mesures d'une station. Fiche établie le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}.</div>
       <div class="r">${o.mention ? `<div class="mention">${esc(o.mention)}</div>` : ''}Document informatif : ne remplace pas la vigilance Météo-France.<br>© ${new Date().getFullYear()} fef73</div></div></div>`; };
   const wrap = $('wrap'); $('empty') && $('empty').remove(); if (!sheet.parentNode) wrap.appendChild(sheet);
   // mise en page : si la fiche doit être réduite, on redessine les graphiques à la largeur voulue
@@ -446,6 +451,26 @@ window.addEventListener('resize', fit);
 window.addEventListener('beforeprint', () => { const s = $('sheet'); if (s) s.style.transform = 'none'; });
 window.addEventListener('afterprint', fit);
 
+
+// ---------- Section « Station de ski » (données du dépôt COMCOM-PDF) ----------
+const stationRec = async insee => (await stationsData()).communes[insee] || null;
+const stnNoteOf = D => 'données station : relevé du ' + dateFr(D.meta.dateReleve) + ', sources publiques';
+function stnBlock(s) {
+  const n = v => v == null ? 'n.c.' : fr(v, 0);
+  const same = s.kmPistesStation != null && s.kmPistesStation === s.kmPistesDomaine;
+  const pistes = s.kmPistesStation != null ? s.kmPistesStation : s.kmPistesDomaine;
+  const pLab = same || s.kmPistesDomaine == null || s.kmPistesStation == null ? 'de pistes' + (s.kmPistesStation == null && s.kmPistesDomaine != null ? ' (domaine)' : '') : `de pistes en station · ${fr(s.kmPistesDomaine, 0)} km sur le domaine`;
+  const alt = s.altitudeBasse != null && s.altitudeHaute != null ? `Remontées de ${fr(s.altitudeBasse, 0)} à ${fr(s.altitudeHaute, 0)} m${s.denivele ? ' (dénivelé ' + fr(s.denivele, 0) + ' m)' : ''}.` : '';
+  return `<div class="sh-sec"><h3>Station de ski · ${esc(s.station)}</h3>
+    <div class="stn">
+      <div class="w3"><b>${esc(s.vallee || 'n.c.')}</b><span>vallée</span></div>
+      <div class="w3"><b>${esc(s.domaineSkiable || 'n.c.')}</b><span>domaine skiable</span></div>
+      <div class="w2"><b>${n(s.remonteesMecaniques)}</b><span>remontées mécaniques</span></div>
+      <div class="w2"><b>${pistes == null ? 'n.c.' : fr(pistes, 0) + ' km'}</b><span>${pLab}</span></div>
+      <div class="w2"><b>${n(s.litsTouristiques)}</b><span>lits touristiques${s.litsAnnee ? ' (données ' + esc(s.litsAnnee) + ')' : ''}</span></div>
+    </div>${alt ? `<div class="ski-cap">${alt}</div>` : ''}</div>`;
+}
+
 // ---------- Page commune : accès par code INSEE, liste des communes abonnées ----------
 const OFFRES = 'https://fef73.github.io/mairies-offres/';
 function etat(titre, html) { $('app').hidden = true; const s = $('state'); s.hidden = false; s.innerHTML = '<h1>' + esc(titre) + '</h1>' + html; }
@@ -473,11 +498,14 @@ function etat(titre, html) { $('app').hidden = true; const s = $('state'); s.hid
     if (conf.air) { try { airData = analyseAir(await fetchAir(lat, lon)); } catch (e) { airData = null; } }
     let lits = conf.lits > 0 ? +conf.lits : null, litsNote = '';
     if (lits == null && conf.lits !== false) { try { const r = await litsFor(insee); if (r) { lits = r.lits; litsNote = r.note; } } catch (e) {} }
+    let stn = null, stnNote = '';
+    if (conf.station) { try { const D2 = await stationsData(), rec = D2.communes[insee];
+      if (rec && rec.stations.length) { stn = (typeof conf.station === 'string' && rec.stations.find(s => s.station.toLowerCase().includes(conf.station.toLowerCase()))) || rec.stations[0]; stnNote = stnNoteOf(D2); } } catch (e) {} }
     const alt = elev != null ? elev : (D.elevation != null ? D.elevation : 0);
     if (conf.logo) logoData = conf.logo;
     if (conf.format === 'A3') $('page-size').textContent = '@page { size: A3 portrait; margin: 0; }';
     render({ name: conf.nom || g.nom, admin1: g.region && g.region.nom, admin2: g.departement && g.departement.nom, population: g.population, lat, lon }, R, alt,
-      { color: conf.couleur || '#1d4e7a', lits, litsNote, mention: conf.mention || '', tour: !!conf.tour, ski: !!conf.ski, air: !!conf.air, airData });
+      { color: conf.couleur || '#1d4e7a', lits, litsNote, stn, stnNote, mention: conf.mention || '', tour: !!conf.tour, ski: !!conf.ski, air: !!conf.air, airData });
   } catch (e) { etat('Données momentanément indisponibles', '<p>Impossible de charger la fiche. Merci de réessayer dans un instant.</p>'); }
 })();
 $('print').addEventListener('click', () => { const s = $('sheet'); if (s) s.style.transform = 'none'; window.print(); });

@@ -156,6 +156,8 @@
       <div class="field"><label class="check"><input type="checkbox" id="f-tour"> Ajouter « Quand venir » (communes touristiques)</label>
         <label class="check"><input type="checkbox" id="f-air"> Qualité de l'air : indice européen par mois (données depuis 2022)</label>
         <label class="check"><input type="checkbox" id="f-ski"> Station de ski : cumul de neige par saison depuis 1950</label>
+        <label class="check"><input type="checkbox" id="f-ytd" checked> Année en cours face à la normale : écart de température et de précipitations depuis le 1er janvier</label>
+        <label class="check"><input type="checkbox" id="f-hist" checked> Depuis 1950 : bandes de température année par année et tableau des jours de gel, de chaleur, de neige…</label>
         <label class="check"><input type="checkbox" id="f-stn"> Station de ski : vallée, domaine, remontées, pistes, lits</label>
         <select id="f-stn-pick" class="hidden" style="margin-top:6px" aria-label="Station"></select>
         <p class="hint" id="stn-hint"></p></div>
@@ -484,17 +486,17 @@ function render(p, R, alt, o) {
         <div class="kpi"><b>${R.annSn >= 1 ? fr(R.annSn, 0) + ' cm' : '—'}</b><span>de neige par an</span></div>
         <div class="kpi"><b>${R.annSu ? fr(R.annSu, 0) + ' h' : '—'}</b><span>d'ensoleillement par an</span></div>
       </div></div>
-    <div class="sh-sec"><h3>${esc(ytdTitle)} face à la normale</h3>
+    ${o.ytd ? `<div class="sh-sec"><h3>${esc(ytdTitle)} face à la normale</h3>
       <div class="ytd">
         <div class="big"><b class="${dT > 0 ? 'warm' : 'cold'}">${dT == null ? '—' : sgn(dT) + ' °C'}</b><span>écart de température à la normale 1991–2020</span></div>
         <div class="big"><b>${dP == null ? '—' : sgn(dP, 0) + ' %'}</b><span>précipitations (${fr(k.prSum, 0)} mm contre ${fr(k.refPr, 0)} mm en moyenne)</span></div>
         <div class="txt">${dT == null ? '' : `Période ${dT >= 0.3 ? 'plus chaude' : dT <= -0.3 ? 'plus fraîche' : 'proche de la normale'}${dP != null ? `, ${dP >= 15 ? 'plus arrosée' : dP <= -15 ? 'plus sèche' : 'avec des pluies dans la norme'}` : ''}. Comparaison sur la même fenêtre calendaire.`}</div>
-      </div></div>
-    <div class="sh-sec"><h3>Depuis ${R.years[0]} · un trait par année</h3>
+      </div></div>` : ''}
+    ${o.hist ? `<div class="sh-sec"><h3>Depuis ${R.years[0]} · un trait par année</h3>
       ${stripes(R)}
       <div class="stripes-cap"><span>${R.years[0]}</span><span>bleu : plus frais que 1991–2020 · rouge : plus chaud</span><span>${R.lastFull}</span></div>
       <table class="ind"><tr><th>Jours par an en moyenne</th>${R.periods.map(([a, b]) => `<th>${a}–${b}</th>`).join('')}</tr>
-        ${R.ind.map(r => `<tr><td>${r.label}</td>${r.vals.map(v => `<td>${fr(v, v < 10 ? 1 : 0)}</td>`).join('')}</tr>`).join('')}</table></div>
+        ${R.ind.map(r => `<tr><td>${r.label}</td>${r.vals.map(v => `<td>${fr(v, v < 10 ? 1 : 0)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}
     ${o.ski ? skiBlock(R, o.color) : ''}
     ${o.air ? airBlock(o.airData) : ''}
     <div class="sh-sec"><h3>Les extrêmes depuis ${R.years[0]}</h3>
@@ -584,7 +586,7 @@ $('f-size').addEventListener('change', () => {
   const a3 = $('f-size').value === 'A3';
   $('page-size').textContent = `@page { size: ${a3 ? 'A3' : 'A4'} portrait; margin: 0; }`;
 });
-['f-color', 'f-tour', 'f-ski', 'f-air'].forEach(id => $(id).addEventListener('change', () => { if (current) $('go').click(); }));
+['f-color', 'f-tour', 'f-ski', 'f-air', 'f-ytd', 'f-hist'].forEach(id => $(id).addEventListener('change', () => { if (current) $('go').click(); }));
 
 const cache = {}, airCache = {};
 $('go').addEventListener('click', async () => {
@@ -605,7 +607,7 @@ $('go').addEventListener('click', async () => {
     const alt = elev != null ? elev : (D.elevation != null ? D.elevation : (chosen.elevation || 0));
     current = { chosen, R, alt };
     render({ name: chosen.name, admin1: chosen.admin1, admin2: chosen.admin2, population: chosen.population, lat: chosen.latitude, lon: chosen.longitude }, R, alt,
-      { color: $('f-color').value, stn: $('f-stn').checked && stnRec && stnRec.stations.length ? stnRec.stations[+$('f-stn-pick').value || 0] : null, stnNote: stnMeta ? stnNoteOf({ meta: stnMeta }) : '', lits: parseLits(), litsNote: litsAuto && parseLits() === litsAuto.lits ? litsAuto.note : '', mention: $('f-mention').value.trim(), tour: $('f-tour').checked, ski: $('f-ski').checked, air: $('f-air').checked, airData });
+      { color: $('f-color').value, stn: $('f-stn').checked && stnRec && stnRec.stations.length ? stnRec.stations[+$('f-stn-pick').value || 0] : null, stnNote: stnMeta ? stnNoteOf({ meta: stnMeta }) : '', lits: parseLits(), litsNote: litsAuto && parseLits() === litsAuto.lits ? litsAuto.note : '', mention: $('f-mention').value.trim(), tour: $('f-tour').checked, ski: $('f-ski').checked, air: $('f-air').checked, ytd: $('f-ytd').checked, hist: $('f-hist').checked, airData });
     $('print').disabled = false; msg('Fiche prête.');
   } catch (e) { delete cache[`${chosen.latitude},${chosen.longitude},${elev}`]; msg('Impossible de récupérer les données. Réessayez dans un instant.', true); }
   $('go').disabled = false;

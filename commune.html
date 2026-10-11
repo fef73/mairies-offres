@@ -134,6 +134,18 @@ const msg = (t, err) => { $('msg').textContent = t; $('msg').className = 'msg' +
 
 async function getJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
 
+// ---------- Lits touristiques : données du dépôt COMCOM-PDF (stations de Savoie) ----------
+const STATIONS_URL = 'https://raw.githubusercontent.com/fef73/COMCOM-PDF/main/donnees/stations-ski-savoie.json';
+let stationsP = null;
+const stationsData = () => stationsP || (stationsP = getJSON(STATIONS_URL).catch(e => { stationsP = null; throw e; }));
+async function litsFor(insee) {
+  const c = (await stationsData()).communes[insee]; if (!c) return null;
+  const v = c.stations.map(s => s.litsTouristiques).filter(x => typeof x === 'number'); if (!v.length) return null;
+  const an = [...new Set(c.stations.map(s => s.litsAnnee).filter(Boolean))].join(' / ');
+  return { lits: v.reduce((a, b) => a + b, 0), note: 'Savoie Mont Blanc' + (an ? ' (' + an + ')' : ''), stations: c.stations.map(s => s.station).join(' + ') };
+}
+
+
 // ---------- Données : 1950 → il y a 6 jours, en 3 morceaux ----------
 async function fetchAll(p, elev) {
   const endD = new Date(Date.now() - 6 * 86400000), end = endD.toISOString().slice(0, 10);
@@ -358,7 +370,7 @@ function render(p, R, alt, o) {
   const build = () => { sheet.innerHTML = `<div class="sh-in">
     <div class="sh-head">${logoData ? `<img class="logo" src="${logoData}" alt="">` : ''}
       <div class="tt"><div class="kicker">Fiche climat</div><h2>${esc(p.name)}</h2>
-      <div class="meta">${esc([place, `altitude ${fr(alt, 0)} m`, p.population ? `${fr(p.population, 0)} habitants` : null].filter(Boolean).join(' · '))}</div></div></div>
+      <div class="meta">${esc([place, `altitude ${fr(alt, 0)} m`, p.population ? `${fr(p.population, 0)} habitants` : null, o.lits ? `${fr(o.lits, 0)} lits touristiques` : null].filter(Boolean).join(' · '))}</div></div></div>
     <div class="sh-sec"><h3>Le climat en un coup d'œil <span style="letter-spacing:0;text-transform:none;color:#5d6b79;font-family:'Space Grotesk',sans-serif;font-size:10.5px;white-space:nowrap">· normales 1991–2020 (c'est la moyenne de chaque mois sur les 30 années de 1991 à 2020)</span></h3>
       ${climogram(R, o.color, o.ski)}
       <div class="kpis">
@@ -389,7 +401,7 @@ function render(p, R, alt, o) {
       </div></div>
     <div class="sh-sec"><h3>Repères locaux</h3><div class="local"><ul>${L.map(x => `<li>${x}</li>`).join('')}</ul></div></div>
     ${tourBlock}
-    <div class="sh-foot"><div>Sources : réanalyse ERA5 (Copernicus / ECMWF) via Open-Meteo, ${yrs} ; normales 1991–2020${o.air ? ' ; qualité de l\'air : CAMS (Copernicus) via Open-Meteo' : ''}. Valeurs modélisées au point ${fr(p.lat, 3)}° N, ${fr(p.lon, 3)}° E à ${fr(alt, 0)} m : elles peuvent différer des mesures d'une station. Fiche établie le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}.</div>
+    <div class="sh-foot"><div>Sources : réanalyse ERA5 (Copernicus / ECMWF) via Open-Meteo, ${yrs} ; normales 1991–2020${o.air ? ' ; qualité de l\'air : CAMS (Copernicus) via Open-Meteo' : ''}${o.litsNote ? ' ; lits touristiques : ' + o.litsNote : ''}. Valeurs modélisées au point ${fr(p.lat, 3)}° N, ${fr(p.lon, 3)}° E à ${fr(alt, 0)} m : elles peuvent différer des mesures d'une station. Fiche établie le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}.</div>
       <div class="r">${o.mention ? `<div class="mention">${esc(o.mention)}</div>` : ''}Document informatif : ne remplace pas la vigilance Météo-France.<br>© ${new Date().getFullYear()} fef73</div></div></div>`; };
   const wrap = $('wrap'); $('empty') && $('empty').remove(); if (!sheet.parentNode) wrap.appendChild(sheet);
   // mise en page : si la fiche doit être réduite, on redessine les graphiques à la largeur voulue
@@ -459,11 +471,13 @@ function etat(titre, html) { $('app').hidden = true; const s = $('state'); s.hid
     const R = analyse(D);
     let airData = null;
     if (conf.air) { try { airData = analyseAir(await fetchAir(lat, lon)); } catch (e) { airData = null; } }
+    let lits = conf.lits > 0 ? +conf.lits : null, litsNote = '';
+    if (lits == null && conf.lits !== false) { try { const r = await litsFor(insee); if (r) { lits = r.lits; litsNote = r.note; } } catch (e) {} }
     const alt = elev != null ? elev : (D.elevation != null ? D.elevation : 0);
     if (conf.logo) logoData = conf.logo;
     if (conf.format === 'A3') $('page-size').textContent = '@page { size: A3 portrait; margin: 0; }';
     render({ name: conf.nom || g.nom, admin1: g.region && g.region.nom, admin2: g.departement && g.departement.nom, population: g.population, lat, lon }, R, alt,
-      { color: conf.couleur || '#1d4e7a', mention: conf.mention || '', tour: !!conf.tour, ski: !!conf.ski, air: !!conf.air, airData });
+      { color: conf.couleur || '#1d4e7a', lits, litsNote, mention: conf.mention || '', tour: !!conf.tour, ski: !!conf.ski, air: !!conf.air, airData });
   } catch (e) { etat('Données momentanément indisponibles', '<p>Impossible de charger la fiche. Merci de réessayer dans un instant.</p>'); }
 })();
 $('print').addEventListener('click', () => { const s = $('sheet'); if (s) s.style.transform = 'none'; window.print(); });

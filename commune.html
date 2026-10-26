@@ -114,6 +114,13 @@
   .center{max-width:520px;margin:14vh auto 0;background:var(--bg-panel);border:1px solid var(--hairline);border-radius:16px;padding:26px;text-align:center;}
   .center h1{margin-bottom:10px;} .center p{color:var(--text-lo);line-height:1.5;} .center a{color:var(--live);}
   @media print{.top{display:none !important;}}
+  /* ===== Mode kiosque (?insee=…&kiosque=1) : écran du hall, plein écran, sans boutons ===== */
+  body.kiosk{padding:0;margin:0;height:100vh;overflow:hidden;background:#000;cursor:none;}
+  .kiosk .top,.kiosk .page-foot{display:none !important;}
+  .kiosk .app{max-width:none;margin:0;height:100vh;display:flex;align-items:center;justify-content:center;}
+  .kiosk .preview{flex:none;}
+  .kiosk .sheet-wrap{max-width:none;box-shadow:none;margin:0;}
+  .kiosk .center{cursor:default;}
 </style>
 </head>
 <body>
@@ -130,6 +137,7 @@
 </div>
 <script>
 const $ = id => document.getElementById(id);
+const KIOSK = /^(1|oui|true)$/i.test(new URLSearchParams(location.search).get('kiosque') || '');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const fr = (v, d = 1) => (Math.abs(v) < Math.pow(10, -d) / 2 ? 0 : v).toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -421,6 +429,11 @@ function render(p, R, alt, o) {
 }
 function fit() {
   const wrap = $('wrap'), s = $('sheet'); if (!s) return;
+  if (KIOSK) { // la fiche entière tient dans l'écran, agrandie si l'écran est grand
+    const k = Math.min(innerWidth / 794, innerHeight / 1122);
+    s.style.transform = `scale(${k})`; wrap.style.width = Math.floor(794 * k) + 'px'; wrap.style.height = Math.floor(1122 * k) + 'px';
+    return;
+  }
   const k = Math.min(1, wrap.clientWidth / 794);
   s.style.transform = `scale(${k})`; wrap.style.height = Math.round(1122 * k) + 'px';
 }
@@ -476,7 +489,23 @@ function stnBlock(s, com) {
 
 // ---------- Page commune : accès par code INSEE, liste des communes abonnées ----------
 const OFFRES = 'https://fef73.github.io/mairies-offres/';
-function etat(titre, html) { $('app').hidden = true; const s = $('state'); s.hidden = false; s.innerHTML = '<h1>' + esc(titre) + '</h1>' + html; }
+function etat(titre, html) { $('app').hidden = true; const s = $('state'); s.hidden = false; s.innerHTML = '<h1>' + esc(titre) + '</h1>' + html;
+  if (KIOSK) setTimeout(() => location.reload(), 5 * 60000); } // en kiosque, on réessaie tout seul toutes les 5 min
+
+// ---------- Mode kiosque ----------
+function kiosque() {
+  document.body.classList.add('kiosk');
+  // actualisation automatique (6 h par défaut, réglable : &maj=12)
+  const h = Math.max(1, +new URLSearchParams(location.search).get('maj') || 6);
+  setTimeout(() => location.reload(), h * 3600000);
+  // garder l'écran allumé quand le navigateur le permet
+  let lock = null;
+  const wake = async () => { try { if ('wakeLock' in navigator && document.visibilityState === 'visible') lock = await navigator.wakeLock.request('screen'); } catch (e) {} };
+  wake(); document.addEventListener('visibilitychange', wake);
+  // un toucher passe en plein écran
+  document.addEventListener('click', () => { const d = document.documentElement; if (!document.fullscreenElement && d.requestFullscreen) d.requestFullscreen().catch(() => {}); });
+}
+if (KIOSK) kiosque();
 (async function main() {
   const insee = (new URLSearchParams(location.search).get('insee') || '').trim().toUpperCase();
   if (!/^(\d{5}|2[AB]\d{3})$/.test(insee))

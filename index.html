@@ -162,6 +162,10 @@
   .footer-signature img{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px var(--hairline);}
 
   .demo{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:18px;padding:22px;}
+  .ex-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .ex-tab{background:var(--bg-card,transparent);color:inherit;border:1px solid var(--hairline);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer;}
+  .ex-tab small{opacity:.65;margin-left:4px;font-size:12px;}
+  .ex-tab.on{border-color:var(--live,#7ee4b8);box-shadow:inset 0 0 0 1px var(--live,#7ee4b8);font-weight:600;}
   .demo iframe{width:100%;height:min(86vh,860px);border:1px solid var(--hairline);border-radius:12px;background:#fff;margin-top:14px;}
   /* Formulaire de demande */
   .ac{position:relative;}
@@ -218,16 +222,20 @@
   </header>
 
   <section id="exemple" hidden>
-    <h2>Exemple</h2>
-    <p class="h2big">Voyez une vraie fiche, tout de suite</p>
-    <p class="sec-lead">Voici une fiche complète, générée avec les vraies données climatiques. La vôtre sera identique, avec votre commune, votre logo et votre pied de page.</p>
+    <h2>Exemples</h2>
+    <p class="h2big">Voyez de vraies fiches, tout de suite</p>
+    <p class="sec-lead">Des fiches complètes, générées avec les vraies données climatiques. La vôtre sera identique, avec votre commune, votre logo et votre pied de page.</p>
     <div class="demo">
+      <div class="ex-tabs" role="tablist" aria-label="Choisir un exemple">
+        <button type="button" role="tab" class="ex-tab on" aria-selected="true" data-pdf="exemple-fiche-climat.pdf" data-title="Exemple de fiche climat communale">Fiche climat <small>1 page A4</small></button>
+        <button type="button" role="tab" class="ex-tab" aria-selected="false" data-pdf="exemple-fiche-neige.pdf" data-title="Exemple de fiche neige, 20 saisons">Fiche neige · 20 saisons <small>2 pages A4</small></button>
+      </div>
       <div class="cta-row">
-        <a class="cta" href="exemple-fiche-climat.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a>
-        <a class="cta cta-2" href="exemple-fiche-climat.pdf" download>Télécharger</a>
+        <a class="cta" id="ex-open" href="exemple-fiche-climat.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a>
+        <a class="cta cta-2" id="ex-dl" href="exemple-fiche-climat.pdf" download>Télécharger</a>
         <a class="cta cta-2" href="#demande">Commander la mienne</a>
       </div>
-      <iframe src="exemple-fiche-climat.pdf#view=FitH" title="Exemple de fiche climat communale"></iframe>
+      <iframe id="ex-frame" src="exemple-fiche-climat.pdf#view=FitH" title="Exemple de fiche climat communale"></iframe>
     </div>
   </section>
 
@@ -545,6 +553,14 @@
 </script>
 
 <script>
+// Onglets d'exemples : change l'aperçu et les liens Ouvrir / Télécharger.
+document.querySelectorAll('.ex-tab').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.ex-tab').forEach(function(x){x.classList.toggle('on',x===b);x.setAttribute('aria-selected',x===b?'true':'false');});
+    var f=document.getElementById('ex-frame');f.src=b.dataset.pdf+'#view=FitH';f.title=b.dataset.title;
+    document.getElementById('ex-open').href=b.dataset.pdf;document.getElementById('ex-dl').href=b.dataset.pdf;
+  });
+});
 // Affiche la section « Exemple » seulement si le PDF est présent sur le site.
 fetch('exemple-fiche-climat.pdf',{method:'HEAD'}).then(function(r){
   if(r.ok)document.getElementById('exemple').hidden=false;

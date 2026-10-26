@@ -159,14 +159,34 @@ function litsOf(c) {
 }
 
 
-// ---------- Données : 1950 → il y a 6 jours, en 3 morceaux ----------
-async function fetchAll(p, elev) {
+// ---------- Données figées 1950 → 2024 : un fichier .bin par point (dépôt COMCOM-PDF), comme mairies-pdf ----------
+// Nom : <INSEE>.bin (altitude auto) ou <INSEE>_<altitude>.bin (altitude imposée), point de calcul = la mairie.
+// Format : Int16 little-endian ; [0] = altitude du modèle (m), puis 6 séries de jours dans l'ordre
+// tx, tn, pr, sn, su, wg. Valeur stockée = valeur × FIGE_ECH ; valeur absente : −32768.
+const FIGE_URL = 'https://fef73.github.io/COMCOM-PDF/donnees/journalier-1950-2024/';
+const FIGE_ECH = [10, 10, 10, 100, 0.1, 10];
+const figeJours = () => { const t = []; for (let d = Date.UTC(1950, 0, 1), f = Date.UTC(2024, 11, 31); d <= f; d += 864e5) t.push(new Date(d).toISOString().slice(0, 10)); return t; };
+async function lireFige(cle) {
+  try {
+    const r = await fetch(FIGE_URL + cle + '.bin'); if (!r.ok) return null;
+    const a = new Int16Array(await r.arrayBuffer()), time = figeJours(), n = time.length;
+    if (a.length !== 1 + 6 * n) return null;
+    const s = k => Array.from(a.subarray(1 + k * n, 1 + (k + 1) * n), x => x === -32768 ? null : x / FIGE_ECH[k]);
+    return { time, tx: s(0), tn: s(1), pr: s(2), sn: s(3), su: s(4), wg: s(5), elevation: a[0] };
+  } catch (e) { return null; }
+}
+
+// ---------- Données : figé 1950-2024 + Open-Meteo depuis 2025, sinon Open-Meteo 1950 → il y a 6 jours en 3 morceaux ----------
+async function fetchAll(p, elev, cle) {
   const endD = new Date(Date.now() - 6 * 86400000), end = endD.toISOString().slice(0, 10);
-  const ranges = [['1950-01-01', '1974-12-31'], ['1975-01-01', '1999-12-31'], ['2000-01-01', end]];
+  const fige = cle ? await lireFige(cle) : null;
+  const ranges = fige ? [['2025-01-01', end]] : [['1950-01-01', '1974-12-31'], ['1975-01-01', '1999-12-31'], ['2000-01-01', end]];
   const vars = 'temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,sunshine_duration,wind_gusts_10m_max';
   const parts = await Promise.all(ranges.map(([a, b]) =>
     getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${p.lat}&longitude=${p.lon}&start_date=${a}&end_date=${b}&daily=${vars}&timezone=auto${elev != null ? '&elevation=' + elev : ''}`)));
-  const out = { time: [], tx: [], tn: [], pr: [], sn: [], su: [], wg: [], elevation: parts[0].elevation };
+  const out = fige
+    ? { time: [...fige.time], tx: [...fige.tx], tn: [...fige.tn], pr: [...fige.pr], sn: [...fige.sn], su: [...fige.su], wg: [...fige.wg], elevation: parts[0].elevation ?? fige.elevation, fige: true }
+    : { time: [], tx: [], tn: [], pr: [], sn: [], su: [], wg: [], elevation: parts[0].elevation };
   for (const j of parts) {
     const d = j.daily; if (!d || !d.time) throw new Error('vide');
     out.time.push(...d.time); out.tx.push(...d.temperature_2m_max); out.tn.push(...d.temperature_2m_min);
@@ -519,13 +539,15 @@ if (KIOSK) kiosque();
   $('app').hidden = false;
   try {
     msg('Identification de la commune…');
-    const g = await getJSON('https://geo.api.gouv.fr/communes/' + encodeURIComponent(insee) + '?fields=nom,code,population,departement,region,centre&format=json&geometry=centre');
-    const lon = g.centre.coordinates[0], lat = g.centre.coordinates[1];
+    const g = await getJSON('https://geo.api.gouv.fr/communes/' + encodeURIComponent(insee) + '?fields=nom,code,population,departement,region,centre,mairie&format=json');
+    // point de calcul : la mairie (comme mairies-pdf et les fichiers .bin) ; à défaut, le centre de la commune
+    const [lon, lat] = (g.mairie || g.centre).coordinates;
     const elev = conf.altitude != null ? +conf.altitude : null;
     $('nm').textContent = g.nom + ' · INSEE ' + g.code;
     document.title = 'Fiche climat — ' + g.nom;
     msg('Récupération de 75 ans de données…');
-    const D = await fetchAll({ lat, lon }, elev);
+    const cle = elev == null || Number.isInteger(elev) ? insee + (elev != null ? '_' + elev : '') : null;
+    const D = await fetchAll({ lat, lon }, elev, cle);
     msg('Calcul…');
     const R = analyse(D);
     let airData = null;

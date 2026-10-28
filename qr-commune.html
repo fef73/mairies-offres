@@ -156,7 +156,7 @@ function afficher() {
   const s = QR.svg(url);
   $('qr').innerHTML = s; $('pQr').innerHTML = QR.svg(url, { margin: 1 });
   $('pNom').textContent = COM.nom; $('pLien').textContent = url.replace('https://', '');
-  $('pMention').textContent = (COM.conf && COM.conf.mention && !/test/i.test(COM.conf.mention)) ? COM.conf.mention : '';
+  $('pMention').textContent = (COM.conf && COM.conf.mention) || '';
   $('res').classList.remove('hide');
 }
 

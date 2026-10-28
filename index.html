@@ -232,6 +232,7 @@
         <button type="button" role="tab" class="ex-tab on" aria-selected="true" data-pdf="exemple-fiche-climat.pdf" data-title="Exemple de fiche climat communale">Fiche climat <small>1 page A4</small></button>
         <button type="button" role="tab" class="ex-tab" aria-selected="false" data-pdf="exemple-fiche-neige.pdf" data-title="Exemple de fiche neige, 20 saisons">Fiche neige · 20 saisons <small>2 pages A4</small></button>
         <button type="button" role="tab" class="ex-tab" aria-selected="false" data-pdf="exemple-fiche-rechauffement.pdf" data-title="Exemple de fiche réchauffement climatique">Fiche réchauffement <small>2 pages A4</small></button>
+        <button type="button" role="tab" class="ex-tab" aria-selected="false" data-pdf="exemple-fiche-qualite-air.pdf" data-title="Exemple de fiche qualité de l'air">Fiche qualité de l'air <small>2 pages A4</small></button>
       </div>
       <div class="cta-row">
         <a class="cta" id="ex-open" href="exemple-fiche-climat.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a>
@@ -254,7 +255,7 @@
         <span>Jours de canicule, de gel, de forte pluie, de neige et de vent fort comparés sur trois périodes : un support simple pour un PCAET, un conseil municipal ou une réunion publique.</span></div>
       <div class="arg" style="--accent:var(--violet)"><div class="ico">🍃</div>
         <b>Qualité de l'air, en option</b>
-        <span>L'indice européen mois par mois depuis 2022, le polluant le plus souvent en cause (ozone l'été, particules l'hiver) et la pire journée : de quoi informer les habitants sans jargon.</span></div>
+        <span>Une fiche dédiée : particules fines, dioxyde d'azote et ozone comparés aux valeurs guides de l'OMS, une bande de couleur par jour depuis 2013 et l'évolution année par année. De quoi informer les habitants sans jargon.</span></div>
       <div class="arg" style="--accent:var(--azure)"><div class="ico">🏔️</div>
         <b>Juste en montagne</b>
         <span>La fiche est calculée à l'altitude de votre choix : le village, le hameau ou la station, pas la vallée voisine.</span></div>
@@ -287,11 +288,10 @@
       <li>Option « Cumul de neige par saison » depuis 1950, avec record et moyenne glissante sur 10 saisons</li>
       <li>Option « Horizon neige » : jours de chute de neige en 2030, 2050 et 2100 selon la trajectoire officielle de réchauffement (TRACC)</li>
       <li>Option « Risque inondation » : arrêtés de catastrophe naturelle depuis 1982 et plan de prévention (Géorisques)</li>
-      <li>Option « Qualité de l'air » : indice européen mois par mois depuis 2022, polluant principal et pire journée</li>
       <li>Mention « Mairie de … » en pied de page, formats A4 ou A3</li>
       <li>En complément, la <b>Fiche neige · 20 saisons</b> (2 pages A4, + 80 € HT) : première et dernière chute, plus forte chute et jours de neige au sol pour chacune des 20 dernières saisons, avec la tendance (voir l'exemple)</li>
       <li>En complément, la <b>Fiche réchauffement climatique</b> (2 pages A4, + 80 € HT) : niveau de réchauffement de la commune face à 1951-1980, bandes climatiques depuis 1940, tendance par décennie, années les plus chaudes, et le jour de votre choix comparé année par année depuis 1940 (voir l'exemple)</li>
-      <li>En complément, la <b>Fiche qualité de l'air</b> (2 pages A4, + 80 € HT) : niveau de pollution de la commune face aux valeurs guides de l'OMS et aux limites européennes 2030, particules fines PM2,5 et PM10, dioxyde d'azote, jours d'ozone élevé, bandes de pollution jour par jour, saisons, évolution et tableau mois par mois</li>
+      <li>En complément, la <b>Fiche qualité de l'air</b> (2 pages A4, + 80 € HT) : niveau de pollution de la commune face aux valeurs guides de l'OMS et aux limites européennes 2030, particules fines PM2,5 et PM10, dioxyde d'azote, jours d'ozone élevé, bandes de pollution jour par jour depuis 2013, saisons, évolution et tableau mois par mois (voir l'exemple)</li>
     </ul>
   </section>
 
@@ -441,7 +441,6 @@
         <div class="opts">
           <label class="opt"><input type="checkbox" name="options" value="Quand venir (tourisme)"> Quand venir (tourisme)</label>
           <label class="opt"><input type="checkbox" name="options" value="Station de ski : cumul de neige depuis 1950"> Station de ski : cumul de neige depuis 1950</label>
-          <label class="opt"><input type="checkbox" name="options" value="Qualité de l'air"> Qualité de l'air</label>
           <label class="opt"><input type="checkbox" name="options" value="Fiche neige 20 saisons (+ 80 € HT)"> Fiche neige · 20 saisons (+ 80 € HT)</label>
           <label class="opt"><input type="checkbox" name="options" value="Fiche réchauffement climatique (+ 80 € HT)"> Fiche réchauffement climatique (+ 80 € HT)</label>
           <label class="opt"><input type="checkbox" name="options" value="Fiche qualité de l'air (+ 80 € HT)"> Fiche qualité de l'air (+ 80 € HT)</label>

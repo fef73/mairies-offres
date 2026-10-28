@@ -25,7 +25,7 @@ Réanalyse ERA5 (Copernicus / ECMWF) via [Open-Meteo](https://open-meteo.com/) ;
 | Fichier | Rôle |
 |---|---|
 | `index.html` | La page complète (HTML et CSS, sans JavaScript) |
-| `exemple-fiche-climat.pdf`, `exemple-fiche-neige.pdf`, `exemple-fiche-rechauffement.pdf` | Fiches d'exemple affichées dans la section « Exemples » |
+| `exemple-fiche-climat.pdf`, `exemple-fiche-neige.pdf`, `exemple-fiche-rechauffement.pdf`, `exemple-fiche-qualite-air.pdf` | Fiches d'exemple affichées dans la section « Exemples » |
 | `logo-fef73.jpg` | Avatar affiché dans la signature du pied de page |
 | `LICENSE` | Droits d'auteur (tous droits réservés) |
 | `README.md` | Ce fichier |

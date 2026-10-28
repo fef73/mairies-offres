@@ -71,16 +71,22 @@
   .kiosk .preview{flex:none;}
   .kiosk .sheet-wrap{max-width:none;box-shadow:none;margin:0;}
   .kiosk .center{cursor:default;}
+  /* QR code à scanner, sur le côté de l'écran en kiosque (seulement s'il reste de la place) */
+  .kqr{position:fixed;right:2vw;bottom:4vh;width:15vw;max-width:260px;background:#fff;border-radius:12px;padding:10px 10px 8px;text-align:center;color:#14202e;font:600 clamp(11px,1vw,16px)/1.3 'Space Grotesk',sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.5);}
+  .kqr svg{display:block;width:100%;height:auto;margin-bottom:6px;}
+  .top .acts{display:flex;gap:8px;flex-wrap:wrap;}
+  .top .acts .btn{flex:none;text-decoration:none;}
 </style>
 </head>
 <body>
 <div class="app" id="app" hidden>
-  <div class="top"><span class="nm" id="nm"></span><button class="btn" id="print" type="button" style="flex:none">Enregistrer en PDF / Imprimer</button></div>
+  <div class="top"><span class="nm" id="nm"></span><div class="acts"><a class="btn alt" id="qrlink" href="qr-commune.html">🔗 Lien et QR code</a><button class="btn" id="print" type="button" style="flex:none">Enregistrer en PDF / Imprimer</button></div></div>
   <div class="preview">
     <div class="sheet-wrap" id="wrap"><div class="empty" id="empty">Chargement de la fiche…<div id="msg" class="msg" style="margin-top:12px"></div></div></div>
   </div>
 </div>
 <div class="center" id="state" hidden></div>
+<div class="kqr" id="kqr" hidden></div>
 <div class="page-foot">
   <div class="sig"><img src="logo-fef73.jpg" alt="fef73" width="26" height="26"><span>Créé par fef73 avec claude.ai</span></div>
   <div style="opacity:.6;">© 2026 Fernand (fef73) — Tous droits réservés</div>
@@ -95,10 +101,13 @@ if (KIOSK) window.ficheFit = (wrap, s) => {
   const de = document.documentElement, W = Math.min(de.clientWidth || innerWidth, innerWidth), H = Math.min(de.clientHeight || innerHeight, innerHeight);
   const k = Math.min(W / 794, H / 1122);
   s.style.transform = `scale(${k})`; wrap.style.width = Math.floor(794 * k) + 'px'; wrap.style.height = Math.floor(1122 * k) + 'px';
+  // QR code sur le côté seulement si la marge noire est assez large pour ne rien masquer
+  const kq = document.getElementById('kqr'); if (kq && kq.innerHTML) { const marge = (W - 794 * k) / 2; kq.hidden = marge < 150; kq.style.width = Math.min(260, marge - 30) + 'px'; }
 };
 </script>
 <!-- Moteur de la fiche, partagé avec le générateur mairies-pdf (un seul code) -->
 <script src="/mairies-pdf/fiche-moteur.js"></script>
+<script src="qr.js"></script>
 <script>
 // ---------- Page commune : accès par code INSEE, liste des communes abonnées ----------
 const OFFRES = 'https://fef73.github.io/mairies-offres/';
@@ -135,6 +144,8 @@ if (KIOSK) kiosque();
     const [lon, lat] = (g.mairie || g.centre).coordinates;
     const elev = conf.altitude != null ? +conf.altitude : null;
     $('nm').textContent = g.nom + ' · INSEE ' + g.code;
+    $('qrlink').href = 'qr-commune.html?insee=' + encodeURIComponent(insee);
+    if (KIOSK && typeof QR !== 'undefined') $('kqr').innerHTML = QR.svg(OFFRES + 'commune.html?insee=' + insee, { margin: 1 }) + '📱 Scannez pour l\'avoir<br>sur votre téléphone';
     document.title = 'Fiche climat — ' + g.nom;
     msg('Récupération de 75 ans de données…');
     const cle = elev == null || Number.isInteger(elev) ? insee + (elev != null ? '_' + elev : '') : null;

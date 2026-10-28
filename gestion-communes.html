@@ -168,7 +168,7 @@ function draw() {
       <td><select data-f="format"><option${d.format === 'A3' ? '' : ' selected'}>A4</option><option${d.format === 'A3' ? ' selected' : ''}>A3</option></select></td>
       <td><input class="men" type="text" data-f="mention" value="${esc(d.mention || '')}" placeholder="Mairie de … · www.…"></td>
       <td><input class="logo" type="text" data-f="logo" value="${esc(d.logo || '')}" placeholder="logo-xxxxx.png"></td>
-      <td><a href="${SITE}commune.html?insee=${encodeURIComponent(k)}" target="_blank" rel="noopener">Ouvrir</a></td>
+      <td><a href="${SITE}commune.html?insee=${encodeURIComponent(k)}" target="_blank" rel="noopener">Ouvrir</a> · <a href="${SITE}qr-commune.html?insee=${encodeURIComponent(k)}" target="_blank" rel="noopener" title="Lien, QR code et affichette A4">QR</a></td>
       <td><button class="x" type="button" data-del title="Supprimer" aria-label="Supprimer">✕</button></td></tr>`;
   }).join('') : '<tr><td colspan="17" class="stat" style="padding:20px">Aucune commune.</td></tr>';
   const all = Object.keys(data), act = all.filter(k => data[k].actif !== false).length;

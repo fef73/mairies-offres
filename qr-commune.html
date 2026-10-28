@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Lien et QR code de la commune</title>
+<meta name="theme-color" content="#0b1622">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,600&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#0b1622; --bg-panel:#101f30; --bg-card:#132539; --hairline:#22384f; --text-hi:#f3f6f9; --text-lo:#8fa4b8; --live:#7ee4b8; --coral:#e76f51; --gold:#e9c46a; }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text-hi);font-family:'Space Grotesk',sans-serif;padding:24px 16px 50px;line-height:1.5;}
+  main{max-width:880px;margin:0 auto;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--live);margin-bottom:6px;}
+  h1{font-family:'Fraunces',serif;font-style:italic;font-weight:600;font-size:clamp(26px,4vw,36px);margin:0 0 6px;}
+  .sub{color:var(--text-lo);font-size:14px;margin:0 0 20px;max-width:62ch;}
+  .card{background:var(--bg-panel);border:1px solid var(--hairline);border-radius:16px;padding:18px;margin-bottom:16px;}
+  form{display:flex;gap:8px;flex-wrap:wrap;}
+  input{flex:1;min-width:150px;background:var(--bg-card);border:1px solid var(--hairline);border-radius:10px;padding:11px 14px;color:var(--text-hi);font:15px 'Space Grotesk',sans-serif;outline:none;}
+  input:focus{border-color:var(--live);}
+  button,.btn{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;background:var(--live);color:#0b1622;border:1px solid var(--live);border-radius:8px;padding:10px 14px;cursor:pointer;text-decoration:none;display:inline-block;}
+  button.sec,.btn.sec{background:var(--bg-card);color:var(--text-hi);border-color:var(--hairline);font-weight:500;}
+  button.sec:hover,.btn.sec:hover{border-color:var(--live);}
+  #etat{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--live);margin:10px 0 0;min-height:1.2em;}
+  #etat.err{color:var(--coral);}
+  .res{display:grid;grid-template-columns:260px 1fr;gap:22px;align-items:start;}
+  @media (max-width:640px){.res{grid-template-columns:1fr;}}
+  .qr{background:#fff;border-radius:12px;padding:10px;}
+  .qr svg{display:block;width:100%;height:auto;}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:1.3rem;margin:0 0 4px;}
+  .st{font-family:'IBM Plex Mono',monospace;font-size:11.5px;margin:0 0 14px;}
+  .st.on{color:var(--live);} .st.off{color:var(--gold);}
+  .lab{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-lo);margin:14px 0 5px;}
+  .url{display:flex;gap:6px;}
+  .url input{font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:9px 10px;}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+  .tnote{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-lo);margin:10px 0 0;line-height:1.5;}
+  .hide{display:none !important;}
+  footer{margin-top:26px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-lo);}
+  footer img{width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:6px;}
+  /* ===== Affichette A4 (impression seulement) ===== */
+  #poster{display:none;}
+  @page{size:A4 portrait;margin:0;}
+  @media print{
+    body{background:#fff;padding:0;}
+    main,footer{display:none !important;}
+    #poster{display:flex;flex-direction:column;align-items:center;justify-content:space-between;width:210mm;height:297mm;padding:22mm 20mm 16mm;color:#14202e;text-align:center;font-family:'Space Grotesk',sans-serif;}
+    #poster .pe{font-family:'IBM Plex Mono',monospace;font-size:11pt;letter-spacing:.16em;text-transform:uppercase;color:#2a9d74;margin:0;}
+    #poster h1{font-family:'Fraunces',serif;font-style:italic;font-weight:600;font-size:34pt;line-height:1.1;margin:6mm 0 3mm;color:#1d4e7a;}
+    #poster .pt{font-size:15pt;margin:0;color:#14202e;}
+    #poster .pq{width:118mm;height:118mm;border:1.2mm solid #1d4e7a;border-radius:6mm;padding:4mm;}
+    #poster .pq svg{width:100%;height:100%;display:block;}
+    #poster .ps{font-size:16pt;font-weight:700;margin:0;}
+    #poster .pl{font-family:'IBM Plex Mono',monospace;font-size:10pt;color:#5d6b7a;margin:2mm 0 0;word-break:break-all;}
+    #poster .pm{font-size:12pt;color:#14202e;margin:0;}
+    #poster .pf{font-family:'IBM Plex Mono',monospace;font-size:8.5pt;color:#8a96a3;margin:0;}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">fiche climat communale — lien et QR code</div>
+  <h1>Lien et QR code de la commune</h1>
+  <p class="sub">La page web de la commune s'ouvre avec son code INSEE. Copiez le lien pour le site de la mairie, téléchargez le QR code pour le bulletin municipal, ou imprimez l'affichette à poser en mairie et à l'office de tourisme.</p>
+
+  <div class="card">
+    <form id="f">
+      <input id="insee" placeholder="Code INSEE (ex : 73116) ou nom de la commune" autocomplete="off" required>
+      <button>Afficher</button>
+    </form>
+    <p id="etat"></p>
+  </div>
+
+  <div class="card hide" id="res">
+    <div class="res">
+      <div class="qr" id="qr"></div>
+      <div>
+        <h2 id="nom"></h2>
+        <p class="st" id="statut"></p>
+        <div class="lab">Lien de la page</div>
+        <div class="url"><input id="lien" readonly><button type="button" class="sec" data-copy="lien">📋 Copier</button></div>
+        <div class="lab">Lien écran en mairie (mode kiosque, plein écran, mis à jour tout seul)</div>
+        <div class="url"><input id="lienK" readonly><button type="button" class="sec" data-copy="lienK">📋 Copier</button></div>
+        <div class="acts">
+          <a class="btn" id="ouvrir" target="_blank" rel="noopener">🔗 Ouvrir la page</a>
+          <button type="button" class="sec" id="png">⬇️ QR code PNG</button>
+          <button type="button" class="sec" id="svg">⬇️ QR code SVG</button>
+          <button type="button" class="sec" id="affiche">🖨️ Affichette A4</button>
+        </div>
+        <p class="tnote">PNG 1200 px pour Word ou un site, SVG vectoriel pour l'imprimeur (net à toutes les tailles). L'affichette s'imprime ou s'enregistre en PDF depuis la fenêtre d'impression.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer><img src="logo-fef73.jpg" alt="">Créé par fef73 avec claude.ai · © 2026 Fernand (fef73) — Tous droits réservés</footer>
+</main>
+
+<div id="poster">
+  <div>
+    <p class="pe">Fiche climat communale</p>
+    <h1 id="pNom"></h1>
+    <p class="pt">Le climat de la commune depuis 1950,<br>mis à jour chaque mois</p>
+  </div>
+  <div class="pq" id="pQr"></div>
+  <div>
+    <p class="ps">📱 Scannez avec l'appareil photo de votre téléphone</p>
+    <p class="pl" id="pLien"></p>
+  </div>
+  <p class="pm" id="pMention"></p>
+  <p class="pf">Données Open-Meteo (réanalyse ERA5, Copernicus) · fef73.github.io/mairies-offres</p>
+</div>
+
+<script src="qr.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const SITE = 'https://fef73.github.io/mairies-offres/';
+const etat = (t, err) => { $('etat').textContent = t || ''; $('etat').className = err ? 'err' : ''; };
+let COM = null;
+
+async function getJSON(u) { const r = await fetch(u); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
+
+$('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const q = $('insee').value.trim();
+  if (!q) return;
+  etat('Recherche…'); $('res').classList.add('hide');
+  try {
+    let code = q.toUpperCase();
+    if (!/^(\d{5}|2[AB]\d{3})$/.test(code)) { // recherche par nom
+      const l = await getJSON('https://geo.api.gouv.fr/communes?nom=' + encodeURIComponent(q) + '&fields=nom,code,departement&boost=population&limit=1');
+      if (!l.length) return etat('Commune introuvable.', true);
+      code = l[0].code;
+    }
+    const [g, all] = await Promise.all([
+      getJSON('https://geo.api.gouv.fr/communes/' + code + '?fields=nom,code,departement').catch(() => null),
+      getJSON('communes.json?v=' + Date.now()).catch(() => ({}))
+    ]);
+    const conf = all[code];
+    if (!g && !conf) return etat('Code INSEE inconnu : ' + code, true);
+    COM = { code, nom: (conf && (conf.nom || conf.commune)) || g.nom, dep: g && g.departement ? g.departement.nom + ' (' + g.departement.code + ')' : '', conf };
+    afficher(); etat('');
+    history.replaceState(null, '', '?insee=' + code);
+  } catch (err) { etat('Erreur : ' + err.message, true); }
+});
+
+function afficher() {
+  const url = SITE + 'commune.html?insee=' + COM.code, urlK = url + '&kiosque=1';
+  $('nom').textContent = COM.nom + ' · INSEE ' + COM.code;
+  const on = COM.conf && COM.conf.actif !== false;
+  $('statut').textContent = on ? '● Page active' + (COM.dep ? ' · ' + COM.dep : '') : '● Page pas encore activée : le lien affichera « Page non activée » tant que la commune n\'est pas activée dans communes.json';
+  $('statut').className = 'st ' + (on ? 'on' : 'off');
+  $('lien').value = url; $('lienK').value = urlK; $('ouvrir').href = url;
+  const s = QR.svg(url);
+  $('qr').innerHTML = s; $('pQr').innerHTML = QR.svg(url, { margin: 1 });
+  $('pNom').textContent = COM.nom; $('pLien').textContent = url.replace('https://', '');
+  $('pMention').textContent = (COM.conf && COM.conf.mention && !/test/i.test(COM.conf.mention)) ? COM.conf.mention : '';
+  $('res').classList.remove('hide');
+}
+
+const slug = () => COM.nom.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const telecharger = (href, nom) => { const a = document.createElement('a'); a.href = href; a.download = nom; document.body.appendChild(a); a.click(); a.remove(); };
+$('png').onclick = () => QR.canvas($('lien').value, 1200).toBlob(b => { const u = URL.createObjectURL(b); telecharger(u, 'qr-' + slug() + '-' + COM.code + '.png'); setTimeout(() => URL.revokeObjectURL(u), 4000); });
+$('svg').onclick = () => { const u = URL.createObjectURL(new Blob([QR.svg($('lien').value)], { type: 'image/svg+xml' })); telecharger(u, 'qr-' + slug() + '-' + COM.code + '.svg'); setTimeout(() => URL.revokeObjectURL(u), 4000); };
+$('affiche').onclick = () => { const t = document.title; document.title = 'affichette-' + slug(); window.print(); document.title = t; };
+document.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => {
+  const v = $(b.dataset.copy).value;
+  (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).catch(() => { $(b.dataset.copy).select(); document.execCommand('copy'); })
+    .finally(() => { b.textContent = '✅ Copié'; setTimeout(() => b.textContent = '📋 Copier', 1500); });
+});
+
+const init = new URLSearchParams(location.search).get('insee');
+if (init) { $('insee').value = init; $('f').requestSubmit(); }
+</script>
+</body>
+</html>

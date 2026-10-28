@@ -26,6 +26,10 @@ Réanalyse ERA5 (Copernicus / ECMWF) via [Open-Meteo](https://open-meteo.com/) ;
 |---|---|
 | `index.html` | La page complète (HTML et CSS, sans JavaScript) |
 | `exemple-fiche-climat.pdf`, `exemple-fiche-neige.pdf`, `exemple-fiche-rechauffement.pdf`, `exemple-fiche-qualite-air.pdf` | Fiches d'exemple affichées dans la section « Exemples » |
+| `commune.html` | Page web de la commune : `commune.html?insee=73116` (mode écran en mairie : `&kiosque=1`, avec QR code à scanner sur le côté de l'écran) |
+| `qr-commune.html` | Lien et QR code d'une commune : `qr-commune.html?insee=73116` (copie du lien, QR code PNG 1200 px ou SVG, affichette A4 à imprimer) |
+| `qr.js` | Générateur de QR code maison, sans bibliothèque |
+| `communes.json`, `gestion-communes.html` | Communes activées et page de gestion (lien « QR » sur chaque ligne) |
 | `logo-fef73.jpg` | Avatar affiché dans la signature du pied de page |
 | `LICENSE` | Droits d'auteur (tous droits réservés) |
 | `README.md` | Ce fichier |

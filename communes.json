@@ -34,7 +34,8 @@
     "station": "La Toussuire",
     "lits": 13239,
     "epci": "200070464",
-    "epciNom": "CC Cœur de Maurienne Arvan"
+    "epciNom": "CC Cœur de Maurienne Arvan",
+    "logo": "logo-73116.png"
   },
   "73135": {
     "commune": "La Tour-en-Maurienne",

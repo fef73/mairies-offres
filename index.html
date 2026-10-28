@@ -525,7 +525,10 @@
     d.set('options',Array.prototype.map.call(form.querySelectorAll('input[name=options]:checked'),function(x){return x.value;}).join(' · '));
     if(window.reqQuote){var q=window.reqQuote();d.set('ref',q.ref);d.set('estimation_ht',q.ht==null?'sur devis':String(q.ht));}
     btn.disabled=true;say('','Envoi en cours…');
-    fetch(ENDPOINT,{method:'POST',mode:'no-cors',body:d}).then(function(){
+    (window.reqPdfBase64?window.reqPdfBase64():Promise.resolve(null)).then(function(b64){
+      if(b64)d.set('pdf',b64);
+      return fetch(ENDPOINT,{method:'POST',mode:'no-cors',body:d});
+    }).then(function(){
       form.reset();if(window.reqQuoteRefresh)window.reqQuoteRefresh(true);say('ok','Merci, votre demande est bien envoyée. Je vous réponds sous 48 h.');
     }).catch(function(){say('ko','Envoi impossible. Merci de réessayer dans un instant.');}).then(function(){btn.disabled=false;});
   });
@@ -668,11 +671,9 @@ fetch('exemple-fiche-climat.pdf',{method:'HEAD'}).then(function(r){
   function logo(){return fetch('logo-fef73.jpg').then(function(r){return r.ok?r.blob():null;}).then(function(b){
     if(!b)return null;return new Promise(function(ok){var fr=new FileReader();fr.onload=function(){ok(fr.result);};fr.readAsDataURL(b);});}).catch(function(){return null;});}
   function T(t){return String(t==null?'':t).replace(/[  ]/g,' ').replace(/[’]/g,"'").replace(/[«»]/g,'"');}
-  btn.addEventListener('click',function(){
+  function buildPdf(){
     var q=quote(), f=form.elements;
-    if(!q.demande){alert('Choisissez d\'abord une formule.');return;}
-    btn.disabled=true;var lbl=btn.textContent;btn.textContent='Génération…';
-    Promise.all([loadJsPDF(),logo()]).then(function(r){
+    return Promise.all([loadJsPDF(),logo()]).then(function(r){
       var img=r[1], doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}), W=210, M=18, y=0;
       doc.setFillColor(11,22,34);doc.rect(0,0,W,34,'F');
       if(img)try{doc.addImage(img,'JPEG',M,8,18,18);}catch(e){}
@@ -730,8 +731,19 @@ fetch('exemple-fiche-climat.pdf',{method:'HEAD'}).then(function(r){
       doc.setFontSize(8);doc.setTextColor(110,125,140);doc.setFont('helvetica','normal');
       doc.text(T('Estimation indicative et non contractuelle, établie à partir du formulaire. Le devis définitif vous est adressé sous 48 h.'),M,285);
       doc.text(T('Données : ERA5 (Copernicus / ECMWF) et CAMS via Open-Meteo.com (CC BY 4.0) · Fernand (fef73)'),M,289.5);
-      doc.save(q.ref+'.pdf');
-    }).catch(function(){alert('Impossible de générer le PDF (connexion ?). Réessayez dans un instant.');})
+      return {doc:doc,name:q.ref+'.pdf'};
+    });
+  }
+  // Pour l'envoi : PDF en base64 (sans l'en-tête data:), ou null si indisponible.
+  window.reqPdfBase64=function(){
+    if(!quote().demande)return Promise.resolve(null);
+    return buildPdf().then(function(r){return r.doc.output('datauristring').split(',')[1];}).catch(function(){return null;});
+  };
+  btn.addEventListener('click',function(){
+    if(!quote().demande){alert('Choisissez d\'abord une formule.');return;}
+    btn.disabled=true;var lbl=btn.textContent;btn.textContent='Génération…';
+    buildPdf().then(function(r){r.doc.save(r.name);})
+      .catch(function(){alert('Impossible de générer le PDF (connexion ?). Réessayez dans un instant.');})
       .then(function(){btn.disabled=false;btn.textContent=lbl;});
   });
 })();

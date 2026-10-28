@@ -192,6 +192,16 @@
   .req button[disabled]{opacity:.6;cursor:wait;}
   .req .msg{margin-top:14px;font-size:15px;}
   .req .msg.ok{color:var(--live);} .req .msg.ko{color:var(--coral);}
+  .quote{background:var(--bg-card);border:1px solid rgba(244,162,97,.5);border-radius:14px;padding:16px 18px;margin:0 0 18px;}
+  .quote h4{margin:0 0 10px;font:600 13px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--amber);text-transform:uppercase;}
+  .quote table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  .quote td{padding:6px 0;border-bottom:1px solid var(--hairline);vertical-align:top;}
+  .quote td.n{text-align:right;white-space:nowrap;padding-left:12px;font-family:'IBM Plex Mono',monospace;}
+  .quote td.inc{color:var(--text-lo);}
+  .quote tr.tot td{border-bottom:0;font-weight:600;color:var(--gold);font-size:16px;padding-top:10px;}
+  .quote tr.sub td{color:var(--text-lo);font-size:13.5px;}
+  .quote .qnote{font-size:12.5px;color:var(--text-lo);margin:10px 0 0;}
+  .btn-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
 </style>
 </head>
 <body>
@@ -456,7 +466,14 @@
       <div style="margin-bottom:18px"><label class="t" for="r-msg">Message</label>
         <textarea id="r-msg" name="message" rows="4" maxlength="2000"></textarea></div>
       <div class="hp" aria-hidden="true"><label>Ne pas remplir <input type="text" name="site" tabindex="-1" autocomplete="off"></label></div>
-      <button class="cta" type="submit" id="r-send">Envoyer ma demande</button>
+      <div class="quote" id="r-quote" aria-live="polite">
+        <h4>Estimation de votre demande</h4>
+        <div id="r-quote-body"></div>
+      </div>
+      <div class="btn-row">
+        <button class="cta" type="submit" id="r-send">Envoyer ma demande</button>
+        <button class="cta cta-2" type="button" id="r-pdf">📄 Récapitulatif PDF</button>
+      </div>
       <div class="msg" id="r-msg-out" role="status" aria-live="polite"></div>
       <p class="hint" style="margin-top:12px">Ces informations servent uniquement à vous répondre. Aucun cookie, aucun traceur.</p>
     </form>
@@ -506,9 +523,10 @@
     d.set('collectivite',form.querySelector('input[name=collectivite]:checked').value);
     ['communes','altitude','pied','nom','email','tel','message'].forEach(function(k){d.set(k,f[k].value.trim());});
     d.set('options',Array.prototype.map.call(form.querySelectorAll('input[name=options]:checked'),function(x){return x.value;}).join(' · '));
+    if(window.reqQuote){var q=window.reqQuote();d.set('ref',q.ref);d.set('estimation_ht',q.ht==null?'sur devis':String(q.ht));}
     btn.disabled=true;say('','Envoi en cours…');
     fetch(ENDPOINT,{method:'POST',mode:'no-cors',body:d}).then(function(){
-      form.reset();say('ok','Merci, votre demande est bien envoyée. Je vous réponds sous 48 h.');
+      form.reset();if(window.reqQuoteRefresh)window.reqQuoteRefresh(true);say('ok','Merci, votre demande est bien envoyée. Je vous réponds sous 48 h.');
     }).catch(function(){say('ko','Envoi impossible. Merci de réessayer dans un instant.');}).then(function(){btn.disabled=false;});
   });
 })();
@@ -579,6 +597,144 @@ document.querySelectorAll('.ex-tab').forEach(function(b){
 fetch('exemple-fiche-climat.pdf',{method:'HEAD'}).then(function(r){
   if(r.ok)document.getElementById('exemple').hidden=false;
 }).catch(function(){});
+</script>
+
+<script>
+// Chiffrage en direct + récapitulatif PDF (jsPDF chargé seulement au clic).
+(function(){
+  var TVA=0; // franchise en base de TVA (art. 293 B du CGI) ; mettre 0.20 si assujetti
+  var FORMULES={'Fiche PDF':{lib:'Fiche climat PDF (A4 ou A3, logo, 1 retouche)',pu:150},
+                'Fiche + page web':{lib:'Fiche + page web (1re année)',pu:250,annuel:120}};
+  var OPTS={'Fiche neige 20 saisons (+ 80 € HT)':{lib:'Fiche neige · 20 saisons (2 p.)',pu:80},
+            'Fiche réchauffement climatique (+ 80 € HT)':{lib:'Fiche réchauffement climatique (2 p.)',pu:80},
+            "Fiche qualité de l'air (+ 80 € HT)":{lib:"Fiche qualité de l'air (2 p.)",pu:80}};
+  var form=document.getElementById('req'), body=document.getElementById('r-quote-body'), box=document.getElementById('r-quote');
+  if(!form)return;
+  var ref=newRef();
+  function newRef(){var d=new Date(),z=function(n){return String(n).padStart(2,'0');};
+    return 'DEM-'+d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'-'+z(d.getHours())+z(d.getMinutes());}
+  function eur(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})+' €';}
+  function val(n){var x=form.querySelector('input[name='+n+']:checked');return x?x.value:'';}
+  function communes(){return form.elements.communes.value.split(/[;,]/).map(function(c){return c.trim();}).filter(Boolean);}
+  function quote(){
+    var dem=val('demande'), cs=communes(), n=Math.max(cs.length,1), lines=[], incl=[], ht=0;
+    var opts=Array.prototype.map.call(form.querySelectorAll('input[name=options]:checked'),function(x){return x.value;});
+    var f=FORMULES[dem];
+    if(f){lines.push({lib:f.lib,q:n,pu:f.pu,tot:f.pu*n});ht+=f.pu*n;}
+    opts.forEach(function(o){
+      if(OPTS[o]){ if(f){lines.push({lib:OPTS[o].lib,q:n,pu:OPTS[o].pu,tot:OPTS[o].pu*n});ht+=OPTS[o].pu*n;} }
+      else incl.push(o);
+    });
+    return {ref:ref,demande:dem,communes:cs,n:n,lines:lines,incl:incl,opts:opts,
+      ht:f?ht:null,tva:f?Math.round(ht*TVA*100)/100:0,ttc:f?Math.round(ht*(1+TVA)*100)/100:0,
+      annuel:f&&f.annuel?f.annuel*n:0};
+  }
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function render(){
+    var q=quote(), h='';
+    box.hidden=(q.demande==='Question');
+    if(!q.demande){body.innerHTML='<p class="qnote" style="margin:0">Choisissez une formule pour voir le montant.</p>';return;}
+    if(q.ht==null){
+      h='<table><tr><td>Pack territoire · '+q.communes.length+' commune(s)</td><td class="n">sur devis</td></tr></table>'+
+        '<p class="qnote">Tarif dégressif selon le nombre de communes. Je vous envoie le devis sous 48 h.</p>';
+    }else{
+      h='<table>';
+      q.lines.forEach(function(l){h+='<tr><td>'+esc(l.lib)+(l.q>1?' <span style="color:var(--text-lo)">× '+l.q+' communes</span>':'')+'</td><td class="n">'+eur(l.tot)+'</td></tr>';});
+      q.incl.forEach(function(o){h+='<tr><td class="inc">'+esc(o)+'</td><td class="n inc">inclus</td></tr>';});
+      h+=TVA?'<tr class="sub"><td>Total HT</td><td class="n">'+eur(q.ht)+'</td></tr><tr class="sub"><td>TVA '+(TVA*100)+' %</td><td class="n">'+eur(q.tva)+'</td></tr><tr class="tot"><td>Total TTC</td><td class="n">'+eur(q.ttc)+'</td></tr>'
+            :'<tr class="tot"><td>Total <span style="font-weight:400;font-size:12.5px;color:var(--text-lo)">· TVA non applicable, art. 293 B du CGI</span></td><td class="n">'+eur(q.ht)+'</td></tr>';
+      h+='</table>';
+      var notes=[];
+      if(!q.communes.length)notes.push('Calculé pour 1 commune : indiquez la ou les communes (séparées par « ; »).');
+      if(q.annuel)notes.push('Puis '+eur(q.annuel)+' HT par an à partir de la 2e année.');
+      notes.push('Estimation indicative, confirmée par devis.');
+      h+='<p class="qnote">'+notes.join(' ')+'</p>';
+    }
+    body.innerHTML=h;
+  }
+  form.addEventListener('input',render); form.addEventListener('change',render);
+  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('a[data-offre]'))setTimeout(render,0);});
+  window.reqQuote=quote;
+  window.reqQuoteRefresh=function(reset){if(reset)ref=newRef();setTimeout(render,0);};
+  render();
+
+  // ---------- PDF ----------
+  var btn=document.getElementById('r-pdf');
+  function loadJsPDF(){
+    if(window.jspdf)return Promise.resolve();
+    return new Promise(function(ok,ko){var s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s.onload=ok;s.onerror=ko;document.head.appendChild(s);});
+  }
+  function logo(){return fetch('logo-fef73.jpg').then(function(r){return r.ok?r.blob():null;}).then(function(b){
+    if(!b)return null;return new Promise(function(ok){var fr=new FileReader();fr.onload=function(){ok(fr.result);};fr.readAsDataURL(b);});}).catch(function(){return null;});}
+  function T(t){return String(t==null?'':t).replace(/[  ]/g,' ').replace(/[’]/g,"'").replace(/[«»]/g,'"');}
+  btn.addEventListener('click',function(){
+    var q=quote(), f=form.elements;
+    if(!q.demande){alert('Choisissez d\'abord une formule.');return;}
+    btn.disabled=true;var lbl=btn.textContent;btn.textContent='Génération…';
+    Promise.all([loadJsPDF(),logo()]).then(function(r){
+      var img=r[1], doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}), W=210, M=18, y=0;
+      doc.setFillColor(11,22,34);doc.rect(0,0,W,34,'F');
+      if(img)try{doc.addImage(img,'JPEG',M,8,18,18);}catch(e){}
+      doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(17);
+      doc.text('Récapitulatif de demande',img?M+24:M,17);
+      doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(200,212,224);
+      doc.text(T('Fiches climat communales · fef73.github.io/mairies-offres'),img?M+24:M,24);
+      doc.setTextColor(244,162,97);doc.setFont('helvetica','bold');doc.setFontSize(10);
+      doc.text(q.ref,W-M,17,{align:'right'});
+      doc.setFont('helvetica','normal');doc.setTextColor(200,212,224);
+      doc.text(T(new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})),W-M,24,{align:'right'});
+      y=46;
+      function sec(t){doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(42,157,143);doc.text(T(t).toUpperCase(),M,y);
+        doc.setDrawColor(42,157,143);doc.setLineWidth(.3);doc.line(M,y+1.8,W-M,y+1.8);y+=8;}
+      function row(k,v){if(!v)return;doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(90,105,120);doc.text(T(k),M,y);
+        doc.setFont('helvetica','normal');doc.setTextColor(20,30,40);var L=doc.splitTextToSize(T(v),W-2*M-42);doc.text(L,M+42,y);y+=5.2*L.length+1.2;}
+      sec('Demandeur');
+      row('Nom et fonction',f.nom.value.trim()||'—');row('Collectivité',val('collectivite')||'—');
+      row('E-mail',f.email.value.trim()||'—');row('Téléphone',f.tel.value.trim());
+      y+=3;sec('Demande');
+      row('Formule',q.demande);
+      row(q.communes.length>1?'Communes ('+q.communes.length+')':'Commune',q.communes.join(' ; ')||'—');
+      row('Altitude',f.altitude.value.trim()||'automatique');
+      row('Pied de page',f.pied.value.trim());
+      row('Options',q.opts.map(function(o){return o.replace(/\s*\(\+ 80 € HT\)/,'');}).join(' · ')||'aucune');
+      y+=3;sec('Chiffrage');
+      doc.setFontSize(9.5);
+      if(q.ht==null){
+        doc.setFont('helvetica','normal');doc.setTextColor(20,30,40);
+        doc.text(doc.splitTextToSize(T('Pack territoire : tarif sur devis, dégressif selon le nombre de communes. Le devis vous est envoyé sous 48 h.'),W-2*M),M,y);y+=12;
+      }else{
+        var cx=[M,W-M-62,W-M-34,W-M];
+        doc.setFillColor(240,244,248);doc.rect(M,y-4.5,W-2*M,7,'F');
+        doc.setFont('helvetica','bold');doc.setTextColor(90,105,120);
+        doc.text('Désignation',M+2,y);doc.text('Qté',cx[1],y,{align:'right'});doc.text('P.U. HT',cx[2],y,{align:'right'});doc.text('Total HT',cx[3]-2,y,{align:'right'});y+=8;
+        doc.setFont('helvetica','normal');doc.setTextColor(20,30,40);
+        q.lines.forEach(function(l){doc.text(T(l.lib),M+2,y);doc.text(String(l.q),cx[1],y,{align:'right'});
+          doc.text(T(eur(l.pu)),cx[2],y,{align:'right'});doc.text(T(eur(l.tot)),cx[3]-2,y,{align:'right'});
+          doc.setDrawColor(225,230,236);doc.line(M,y+2.2,W-M,y+2.2);y+=7;});
+        doc.setTextColor(110,125,140);
+        q.incl.forEach(function(o){doc.text(T(o),M+2,y);doc.text('inclus',cx[3]-2,y,{align:'right'});doc.line(M,y+2.2,W-M,y+2.2);y+=7;});
+        y+=2;
+        function tot(k,v,b){doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(b?11.5:9.5);doc.setTextColor(b?11:60,b?22:72,b?34:85);
+          doc.text(T(k),cx[2]-30,y);doc.text(T(v),cx[3]-2,y,{align:'right'});y+=b?8:6;}
+        if(TVA){tot('Total HT',eur(q.ht));tot('TVA '+(TVA*100)+' %',eur(q.tva));doc.setFillColor(255,209,102);doc.rect(cx[2]-33,y-5,W-M-(cx[2]-33),7.5,'F');tot('Total TTC',eur(q.ttc),true);}
+        else{doc.setFillColor(255,209,102);doc.rect(cx[2]-33,y-5,W-M-(cx[2]-33),7.5,'F');tot('Total',eur(q.ht),true);doc.setFontSize(8.5);doc.setTextColor(90,105,120);doc.text('TVA non applicable, art. 293 B du CGI',cx[3]-2,y,{align:'right'});y+=6;}
+        if(q.annuel){doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(60,72,85);
+          doc.text(T('Puis '+eur(q.annuel)+' HT par an à partir de la 2e année (page web, mise à jour mensuelle, PDF annuel).'),M,y+2);y+=8;}
+        y+=2;
+      }
+      var msg=f.message.value.trim();
+      if(msg){y+=3;sec('Message');doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(20,30,40);
+        var L=doc.splitTextToSize(T(msg),W-2*M);if(y+L.length*5>270)L=L.slice(0,Math.max(1,Math.floor((270-y)/5)));doc.text(L,M,y);}
+      doc.setDrawColor(200,210,220);doc.line(M,280,W-M,280);
+      doc.setFontSize(8);doc.setTextColor(110,125,140);doc.setFont('helvetica','normal');
+      doc.text(T('Estimation indicative et non contractuelle, établie à partir du formulaire. Le devis définitif vous est adressé sous 48 h.'),M,285);
+      doc.text(T('Données : ERA5 (Copernicus / ECMWF) et CAMS via Open-Meteo.com (CC BY 4.0) · Fernand (fef73)'),M,289.5);
+      doc.save(q.ref+'.pdf');
+    }).catch(function(){alert('Impossible de générer le PDF (connexion ?). Réessayez dans un instant.');})
+      .then(function(){btn.disabled=false;btn.textContent=lbl;});
+  });
+})();
 </script>
 </body>
 </html>

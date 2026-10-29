@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /gestion-communes.html
+Disallow: /commune.html
+Disallow: /qr-commune.html
+Sitemap: https://comparateur-meteo.fr/sitemap.xml

@@ -154,13 +154,14 @@
     "tour": true,
     "ski": true,
     "air": true,
-    "mention": "Mairie https://www.mairie-saint-pancrace73.fr",
+    "mention": "Les Bottières https://www.mairie-saint-pancrace73.fr",
     "epci": "200070464",
     "epciNom": "CC Cœur de Maurienne Arvan",
     "station": "Les Bottières",
     "inond": true,
     "futur": true,
-    "logo": "logo-73267.png"
+    "logo": "logo-73267.png",
+    "lits": 1300
   },
   "73280": {
     "commune": "Saint-Sorlin-d'Arves",

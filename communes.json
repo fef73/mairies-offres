@@ -201,10 +201,11 @@
     "tour": true,
     "ski": false,
     "air": true,
-    "mention": "",
+    "mention": "Mairie https://www.mairie-villargondran.fr/",
     "epci": "200070464",
     "epciNom": "CC Cœur de Maurienne Arvan",
     "inond": true,
-    "futur": true
+    "futur": true,
+    "logo": "logo-73320.png"
   }
 }

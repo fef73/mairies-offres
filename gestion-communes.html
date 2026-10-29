@@ -77,8 +77,8 @@
 
   <div id="msg" class="msg" role="status" aria-live="polite"></div>
   <div class="tw"><table>
-    <thead><tr><th>Active</th><th>INSEE</th><th>Commune</th><th>Intercommunalité</th><th>Altitude (m)</th><th>Ski</th><th>Quand venir</th><th>Air</th><th>Inondation</th><th>Horizon neige</th><th>Lits</th><th>Station de ski</th><th>Format</th><th>Mention en pied de page</th><th>Logo (fichier)</th><th>Page</th><th></th></tr></thead>
-    <tbody id="rows"><tr><td colspan="17" class="stat" style="padding:20px">Cliquez sur « Charger depuis le site » ou « Ouvrir un fichier… ».</td></tr></tbody>
+    <thead><tr><th>Active</th><th>INSEE</th><th>Commune</th><th>Intercommunalité</th><th>Altitude (m)</th><th title="Altitude utilisée pour la fiche neige (vide = altitude)">Alt. neige (m)</th><th>Ski</th><th>Quand venir</th><th>Air</th><th>Inondation</th><th>Horizon neige</th><th>Lits</th><th>Station de ski</th><th>Format</th><th>Mention en pied de page</th><th>Logo (fichier)</th><th>Page</th><th></th></tr></thead>
+    <tbody id="rows"><tr><td colspan="18" class="stat" style="padding:20px">Cliquez sur « Charger depuis le site » ou « Ouvrir un fichier… ».</td></tr></tbody>
   </table></div>
   <div class="stat" id="count" style="margin-top:8px"></div>
 
@@ -158,6 +158,7 @@ function draw() {
       <td>${esc(d.commune || '—')}</td>
       <td class="stat">${esc(d.epciNom || '—')}</td>
       <td><input class="alt" type="number" step="1" min="-400" max="6000" data-f="altitude" value="${d.altitude != null ? esc(d.altitude) : ''}" placeholder="auto"></td>
+      <td><input class="alt" type="number" step="1" min="-400" max="6000" data-f="altitudeNeige" value="${d.altitudeNeige != null ? esc(d.altitudeNeige) : ''}" placeholder="= alt." title="Altitude de la fiche neige (vide = même altitude)"></td>
       <td class="c"><input type="checkbox" data-f="ski" ${d.ski ? 'checked' : ''}></td>
       <td class="c"><input type="checkbox" data-f="tour" ${d.tour ? 'checked' : ''}></td>
       <td class="c"><input type="checkbox" data-f="air" ${d.air ? 'checked' : ''}></td>
@@ -170,7 +171,7 @@ function draw() {
       <td><input class="logo" type="text" data-f="logo" value="${esc(d.logo || '')}" placeholder="logo-xxxxx.png"></td>
       <td><a href="${SITE}commune.html?insee=${encodeURIComponent(k)}" target="_blank" rel="noopener">Ouvrir</a> · <a href="${SITE}qr-commune.html?insee=${encodeURIComponent(k)}" target="_blank" rel="noopener" title="Lien, QR code et affichette A4">QR</a></td>
       <td><button class="x" type="button" data-del title="Supprimer" aria-label="Supprimer">✕</button></td></tr>`;
-  }).join('') : '<tr><td colspan="17" class="stat" style="padding:20px">Aucune commune.</td></tr>';
+  }).join('') : '<tr><td colspan="18" class="stat" style="padding:20px">Aucune commune.</td></tr>';
   const all = Object.keys(data), act = all.filter(k => data[k].actif !== false).length;
   $('count').textContent = loaded ? `${all.length} commune(s) · ${act} active(s) · ${all.length - act} inactive(s)` : '';
 }
@@ -182,6 +183,7 @@ function edit(el) {
   const d = data[tr.dataset.k]; if (!d) return;
   if (f === 'actif') { d.actif = el.checked; tr.classList.toggle('off', !el.checked); }
   else if (f === 'ski' || f === 'tour' || f === 'air' || f === 'inond' || f === 'futur') d[f] = el.checked;
+  else if (f === 'altitudeNeige') { const v = el.value.trim().replace(',', '.'); if (v === '') delete d.altitudeNeige; else if (isFinite(+v)) d.altitudeNeige = Math.round(+v); }
   else if (f === 'altitude') { const v = el.value.trim().replace(',', '.'); if (v === '') delete d.altitude; else if (isFinite(+v)) d.altitude = Math.round(+v); }
   else if (f === 'format') { if (el.value === 'A3') d.format = 'A3'; else delete d.format; }
   else if (f === 'lits') { const v = el.value.trim().replace(/\s/g, ''); if (v === '') delete d.lits; else if (v === '0') d.lits = false; else if (+v > 0) d.lits = Math.round(+v); }

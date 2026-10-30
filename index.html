@@ -104,8 +104,8 @@
 
   /* Inclus */
   .incl{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:6px 24px;margin:0;padding:0;list-style:none;}
-  .incl li{display:flex;gap:10px;font-size:14.5px;padding:8px 0;border-bottom:1px solid var(--hairline);}
-  .incl li::before{content:"✓";color:var(--live);font-weight:700;flex:none;}
+  .incl li{position:relative;font-size:14.5px;padding:8px 0 8px 22px;border-bottom:1px solid var(--hairline);}
+  .incl li::before{content:"✓";color:var(--live);font-weight:700;position:absolute;left:0;top:8px;}
 
   /* Prix */
   .pricing{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;align-items:stretch;}

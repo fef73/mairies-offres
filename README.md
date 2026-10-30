@@ -34,6 +34,16 @@ Réanalyse ERA5 (Copernicus / ECMWF) via [Open-Meteo](https://open-meteo.com/) ;
 | `LICENSE` | Droits d'auteur (tous droits réservés) |
 | `README.md` | Ce fichier |
 
+## Générateurs des fiches d'exemple
+
+| Fiche | Dépôt | Fichier générateur |
+|---|---|---|
+| Fiche climat (1 page A4) | [mairies-pdf](https://github.com/fef73/mairies-pdf) | `index.html` + `fiche-moteur.js` |
+| Fiche neige · 20 saisons (2 pages A4) | [meteo-neige](https://github.com/fef73/meteo-neige) | `fiche-neige.html` |
+| Fiche réchauffement (2 pages A4) | [meteo-climat](https://github.com/fef73/meteo-climat) | `index.html` (copie : `meteo-annees.html`) |
+| Fiche qualité de l'air (2 pages A4) | [qualite-air](https://github.com/fef73/qualite-air) | `index.html` |
+| Fiche intercommunale (1 page A4) | [COMCOM-PDF](https://github.com/fef73/COMCOM-PDF) | `index.html` (qualité de l'air intercommunale : `comcom-pollution.html`) |
+
 ## Droits
 
 © 2026 Fernand (fef73) — tous droits réservés. Voir [LICENSE](LICENSE).
